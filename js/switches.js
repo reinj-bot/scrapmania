@@ -1,10 +1,11 @@
 'use strict';
 // Wall switches: walk up to one and press E, and the vault door right next to it slides open.
-// Press it again to slide the door shut: robots can't get in or shoot through a shut vault door,
-// so they gather outside and wait (Game.update -> Switches.waitSpot), and sooner or later you have
+// Press it again and, 2 seconds later (CLOSE_DELAY, with warning beeps), the door slides shut:
+// robots can't get in or shoot through a shut vault door, so they gather outside and wait (Game.update -> Switches.waitSpot), and sooner or later you have
 // to fight your way out. The switch can be reached from inside the vault too.
 
 const Switches = {
+  CLOSE_DELAY: 2,
   list: [],
 
   init() {
@@ -28,7 +29,8 @@ const Switches = {
   update(dt, game) {
     const s = this.nearby(game.player);
     const key = Controls.pad.active ? 'A' : Controls.name('use');
-    game.usePrompt = s ? 'PRESS ' + key + (!s.used ? ' TO USE SWITCH' : s.on ? ' TO CLOSE THE VAULT' : ' TO OPEN THE VAULT') : null;
+    const g = s && this.door(s);
+    game.usePrompt = s ? 'PRESS ' + key + (!s.used ? ' TO USE SWITCH' : g && g.closeIn > 0 ? ' TO KEEP THE VAULT OPEN' : s.on ? ' TO CLOSE THE VAULT' : ' TO OPEN THE VAULT') : null;
     if (s && (Controls.pressed('use') || Controls.padPressed(PAD.A))) this.activate(s, game);
   },
 
@@ -42,17 +44,31 @@ const Switches = {
       if (this.list.every(sw => sw.used)) game.run.flags.secrets = true;
       game.message('CLICK! A HIDDEN DOOR SLIDES OPEN', '#40e0ff');
       if (g) game.guide = { x: g.cx, y: g.cy, label: 'SECRET ROOM', until: game.time + 20 }; // arrow on the HUD
+    } else if (g.closeIn > 0) {
+      g.closeIn = 0; // changed your mind during the countdown
+      game.message('THE VAULT STAYS OPEN', '#40e0ff');
+      return;
     } else if (g.locked) {
       g.locked = false; g.stayOpen = true;
       game.message('THE VAULT DOOR SLIDES OPEN', '#40e0ff');
     } else {
-      g.locked = true; g.stayOpen = false;
-      game.message('THE VAULT DOOR SLIDES SHUT', '#40e0ff');
+      g.closeIn = this.CLOSE_DELAY; // Doors.update counts down, then shuts it (Switches.shut)
+      game.message('THE VAULT DOOR CLOSES IN ' + this.CLOSE_DELAY + ' SECONDS', '#ffd040');
+      return;
     }
     s.on = !g.locked;
     Level.wall[s.y * Level.W + s.x] = s.on ? 's' : 'S';
     Level.flowFrom = -1; // robots work out their paths again
     if (g) game.playAt('door', g.cx, g.cy, 1);
+  },
+
+  // The countdown is over: the door locks and slides shut.
+  shut(g, game) {
+    g.closeIn = 0; g.locked = true; g.stayOpen = false;
+    const s = this.list.find(sw => sw.secret === g.secret);
+    if (s) { s.on = false; Level.wall[s.y * Level.W + s.x] = 'S'; }
+    Level.flowFrom = -1;
+    game.message('THE VAULT DOOR SLIDES SHUT', '#40e0ff');
   },
 
   // You shut yourself in (no robot pad can reach you): where robots should wait instead -

@@ -37,6 +37,13 @@ const Doors = {
   update(dt, game) {
     const W = Level.W;
     for (const g of this.groups) {
+      // a vault switch was pressed to close: warning beeps, then it shuts
+      if (g.closeIn > 0) {
+        const before = g.closeIn;
+        g.closeIn -= dt;
+        if (Math.ceil(before * 2) !== Math.ceil(g.closeIn * 2)) game.playAt('mine_beep', g.cx, g.cy, 0.6);
+        if (g.closeIn <= 0) Switches.shut(g, game);
+      }
       if (g.locked) {
         // a vault door shut again with its switch slides closed (never onto someone standing in it)
         if (g.open > 0 && !this.occupied(g, game)) {
