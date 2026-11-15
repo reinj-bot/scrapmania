@@ -49,13 +49,13 @@ const WEAPONS = [
   },
   {
     id: 'ar', name: 'ASSAULT RIFLE',
-    damage: 15, pellets: 1, spread: 0.018, bloom: 0.006, maxBloom: 0.05, range: 28, falloff: 14,
+    damage: 12, pellets: 1, spread: 0.018, bloom: 0.006, maxBloom: 0.05, range: 28, falloff: 14,  // (was 15: it beat the SMG everywhere)
     fireDelay: 0.1, auto: true, mag: 30, startReserve: 120, maxReserve: 240,
     reloadTime: 1.8, hitScale: 0.85, kick: 4, shake: 0.08, ammoPickup: 45,
   },
   {
     id: 'smg', name: 'SMG',
-    damage: 8, pellets: 1, spread: 0.045, bloom: 0.004, maxBloom: 0.08, range: 13, falloff: 5,
+    damage: 10, pellets: 1, spread: 0.045, bloom: 0.004, maxBloom: 0.08, range: 13, falloff: 5,  // (was 8)
     fireDelay: 0.055, auto: true, mag: 45, startReserve: 180, maxReserve: 360,
     reloadTime: 1.5, hitScale: 0.95, kick: 3, shake: 0.05, ammoPickup: 60,
   },
