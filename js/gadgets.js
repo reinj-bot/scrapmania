@@ -1,13 +1,13 @@
 'use strict';
 // Things on the map you use with E:
-//  - turret: stand next to it for 10 seconds to hack it, then it shoots robots for 20 seconds
+//  - turret: stand next to it for 3 seconds to hack it, then it shoots robots for a minute
 //  - health station / ammo station: a refill, then a recharge wait
 //  - alarm button: every robot on the map runs to it for 10 seconds
 // They are placed automatically (same spots every game on a map): against a wall, spread out,
 // reachable from the start.
 
 const GADGETS = {
-  turret: { count: 3, use: 'HACK TURRET', hack: 10, active: 20, recharge: 45, range: 12, fireDelay: 0.22, damage: 16 },
+  turret: { count: 3, use: 'HACK TURRET', hack: 3, active: 60, recharge: 45, range: 12, fireDelay: 0.22, damage: 16 },
   health: { count: 2, use: 'USE HEALTH STATION', amount: 40, recharge: 60 },
   ammo: { count: 2, use: 'USE AMMO STATION', recharge: 45 },
   alarm: { count: 2, use: 'PRESS ALARM BUTTON', lure: 10, recharge: 40 },

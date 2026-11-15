@@ -499,7 +499,7 @@ const Menu = {
     const items = [['health', 'MEDKIT: +' + PICKUPS.health.amount + ' HEALTH.'], ['ammo', 'AMMO FOR EVERY GUN YOU HAVE.'],
       ['chip', 'UPGRADE CHIP.'], ['barrel', 'RED BARREL: SHOOT IT TO BLOW UP NEARBY ROBOTS.']];
     for (const [s, text] of items) html += img(Art.sprites[s].canvas || Art.sprites[s]) + `<span>${text}</span>`;
-    const gadgets = [[Art.sprites.turret[1], 'TURRET: STAND NEXT TO IT AND PRESS ' + k('use') + '. STAY CLOSE FOR 10 SECONDS TO HACK IT - THEN IT SHOOTS ROBOTS FOR YOU.'],
+    const gadgets = [[Art.sprites.turret[1], 'TURRET: STAND NEXT TO IT AND PRESS ' + k('use') + '. STAY CLOSE FOR ' + GADGETS.turret.hack + ' SECONDS TO HACK IT - THEN IT SHOOTS ROBOTS FOR YOU FOR ' + GADGETS.turret.active + ' SECONDS.'],
       [Art.sprites.healthStation[0], 'HEALTH STATION (' + k('use') + '): +40 HEALTH, THEN IT RECHARGES.'], [Art.sprites.ammoStation[0], 'AMMO STATION (' + k('use') + '): REFILLS AMMO.'],
       [Art.sprites.alarmStation[0], 'ALARM BUTTON (' + k('use') + '): EVERY ROBOT RUNS TO IT FOR 10 SECONDS.'],
       [Art.sprites.crate, 'CRATE: SHOOT IT OPEN - SOMETIMES AMMO OR A MEDKIT INSIDE.'], [Art.sprites.canister, 'GAS CANISTER: SMALL EXPLOSION WHEN SHOT.'],
