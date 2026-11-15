@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scrapmania</title>
+<link rel="icon" type="image/png" href="logo.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#050608">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="wrap">
+  <canvas id="screen"></canvas>
+  <div id="scanlines"></div>
+
+  <!-- SPLASH (studio) -->
+  <div id="splash" class="overlay splash">
+    <div class="splash-inner">
+      <img src="logo.png" class="pixel splash-icon" alt="">
+      <div id="splash-logo"></div>
+      <div class="splash-sub">PRESENTS</div>
+    </div>
+  </div>
+
+  <!-- TITLE SCREEN -->
+  <div id="title-screen" class="overlay hidden title-screen">
+    <div id="big-title"></div>
+    <div class="title-tag">THE ROBOTS HAVE TAKEN SECTOR 7.</div>
+    <div class="press-any">PRESS ANY KEY</div>
+    <div class="corner-left" id="version-tag"></div>
+    <div class="corner-right">&copy; 2026 REINJ GAMES</div>
+  </div>
+
+  <!-- MAIN MENU -->
+  <div id="menu" class="overlay">
+    <div class="menu-inner">
+      <div id="title" class="title"></div>
+      <div class="subtitle">SECTOR 7 FOUNDRY HAS BEEN OVERRUN BY ROBOTS. <span id="mission-goal"></span></div>
+      <div class="columns">
+        <section class="panel">
+          <h2>PILOT</h2>
+          <div class="pilot">
+            <div class="pilot-left">
+              <canvas id="avatar-preview" class="pixel" width="24" height="32"></canvas>
+              <div id="rank-box"></div>
+            </div>
+            <div class="pilot-fields">
+              <label class="field">CALLSIGN
+                <input id="username" type="text" maxlength="12" spellcheck="false" autocomplete="off">
+              </label>
+              <div id="custom-rows"></div>
+              <div id="start-gun" class="custom-row"></div>
+            </div>
+          </div>
+          <div class="menu-buttons side-buttons">
+            <button data-act="help">HOW TO PLAY</button>
+            <button data-act="credits">CREDITS</button>
+            <button data-act="quit">QUIT</button>
+          </div>
+        </section>
+        <section class="panel">
+          <h2>MAP</h2>
+          <div id="mode-row" class="custom-row"></div>
+          <div id="map-row" class="custom-row"></div>
+          <div id="chapter-row" class="custom-row"></div>
+          <!-- hidden until you win a Mission on difficulty 10 (Records.difficultyUnlocked) -->
+          <div id="diff-controls">
+            <h2>DIFFICULTY</h2>
+            <div class="diff-row">
+              <button id="diff-down" class="arrow">-</button>
+              <div id="diff-num">10</div>
+              <button id="diff-up" class="arrow">+</button>
+              <div id="diff-label"></div>
+            </div>
+            <input type="range" id="difficulty" min="1" max="20" step="1">
+          </div>
+          <div id="diff-info"></div>
+          <button id="play-btn" class="big">PLAY</button>
+          <div class="menu-buttons">
+            <button id="challenges-btn">CHALLENGES</button>
+            <button id="records-btn">ACHIEVEMENTS</button>
+          </div>
+          <div class="menu-buttons">
+            <button data-act="options">OPTIONS</button>
+            <button data-act="controls">CONTROLS</button>
+          </div>
+        </section>
+      </div>
+      <div id="controls-line" class="controls"></div>
+      <div class="corner-left menu-version" id="menu-version"></div>
+      <div id="menu-hint" class="hint"></div>
+    </div>
+  </div>
+
+  <!-- PAUSE -->
+  <div id="pause" class="overlay hidden">
+    <div class="menu-inner small">
+      <div id="pause-title" class="title"></div>
+      <div class="button-col">
+        <button data-act="resume" class="big">RESUME</button>
+        <button data-act="restart">RESTART</button>
+        <button data-act="options">OPTIONS</button>
+        <button data-act="controls">CONTROLS</button>
+        <button data-act="menu">MAIN MENU</button>
+        <button data-act="quit">QUIT GAME</button>
+      </div>
+      <div id="lock-hint" class="hint"></div>
+      <div id="pause-tip" class="tip"></div>
+    </div>
+  </div>
+
+  <!-- GAME OVER -->
+  <div id="gameover" class="overlay hidden">
+    <div class="menu-inner small">
+      <div id="over-title" class="title"></div>
+      <div id="over-card" class="calling-card"></div>
+      <div class="stats">
+        <span>FINAL SCORE</span><b id="stat-score">0</b>
+        <span>ROBOTS DESTROYED</span><b id="stat-kills">0</b>
+        <span>TIME SURVIVED</span><b id="stat-time">0:00</b>
+        <span>MAP</span><b id="stat-map">FOUNDRY</b>
+        <span>DIFFICULTY</span><b id="stat-diff">10</b>
+      </div>
+      <div id="over-extra"></div>
+      <div id="over-tip" class="tip"></div>
+      <div class="button-col">
+        <button data-act="next" class="big hidden">NEXT CHAPTER</button>
+        <button data-act="drill" class="big hidden"></button>
+        <button data-act="restart" class="big">RESTART</button>
+        <button data-act="menu">MAIN MENU</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STORY (chapter briefings and endings) -->
+  <div id="story" class="overlay hidden">
+    <div class="menu-inner story-inner">
+      <div id="story-title" class="title"></div>
+      <div id="story-text" class="panel story-text"></div>
+      <button id="story-btn" class="big">START</button>
+    </div>
+  </div>
+
+  <!-- CHALLENGES -->
+  <div id="challenges" class="overlay hidden">
+    <div class="menu-inner records-inner">
+      <div id="challenges-title" class="title"></div>
+      <div class="subtitle">SWITCH ON EXTRA RULES. EACH ONE MAKES THE GAME HARDER AND RAISES YOUR SCORE.</div>
+      <div id="challenges-list" class="challenges-list"></div>
+      <div id="challenges-total" class="best"></div>
+      <button data-act="back" class="big">BACK</button>
+    </div>
+  </div>
+
+  <!-- ARE YOU SURE? -->
+  <div id="confirm" class="overlay hidden">
+    <div class="menu-inner small">
+      <div id="confirm-title" class="title"></div>
+      <div id="confirm-text" class="subtitle"></div>
+      <div class="menu-buttons confirm-buttons">
+        <button id="confirm-yes" class="big">YES</button>
+        <button id="confirm-no">NO</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- HOW TO PLAY -->
+  <div id="help" class="overlay hidden">
+    <div class="menu-inner records-inner">
+      <div id="help-title" class="title"></div>
+      <div id="help-body" class="panel records-body help-body"></div>
+      <button data-act="back" class="big">BACK</button>
+    </div>
+  </div>
+
+  <!-- CREDITS -->
+  <div id="credits" class="overlay hidden credits">
+    <div id="credits-roll" class="credits-roll"></div>
+    <button data-act="back" class="credits-back">BACK</button>
+  </div>
+
+  <!-- OPTIONS -->
+  <div id="options" class="overlay hidden">
+    <div class="menu-inner records-inner">
+      <div id="options-title" class="title"></div>
+      <div class="columns">
+        <section class="panel">
+          <h2>GAMEPLAY</h2>
+          <label class="field slider">MOUSE SPEED <input type="range" id="sensitivity" min="1" max="10" step="1"></label>
+          <label class="field slider">FIELD OF VIEW <span class="val" id="fov-val"></span><input type="range" id="fov" min="55" max="100" step="5"></label>
+          <div id="shake-row" class="custom-row"></div>
+          <div id="tutorial-row" class="custom-row"></div>
+          <div id="intro-row" class="custom-row"></div>
+          <div id="numbers-row" class="custom-row"></div>
+        </section>
+        <section class="panel">
+          <h2>VIDEO</h2>
+          <div id="display-row" class="custom-row"></div>
+          <label class="field slider">BRIGHTNESS <input type="range" id="brightness" min="6" max="16" step="1"></label>
+          <div id="scanlines-row" class="custom-row"></div>
+          <div id="crosshair-row" class="custom-row"></div>
+          <h2>AUDIO</h2>
+          <label class="field slider">SOUND <input type="range" id="volume" min="0" max="10" step="1"></label>
+          <label class="field slider">MUSIC <input type="range" id="music" min="0" max="10" step="1"></label>
+        </section>
+      </div>
+      <div id="progress-buttons" class="menu-buttons">
+        <button id="export-btn">EXPORT PROGRESS</button>
+        <button id="import-btn">IMPORT PROGRESS</button>
+      </div>
+      <button data-act="back" class="big">BACK</button>
+    </div>
+  </div>
+
+  <!-- CONTROLS (key remapping) -->
+  <!-- move progress between copies of the game (js/transfer.js) -->
+  <div id="transfer" class="overlay hidden">
+    <div class="menu-inner transfer-inner">
+      <div id="transfer-title" class="title"></div>
+      <div id="transfer-help" class="subtitle"></div>
+      <textarea id="transfer-code" spellcheck="false"></textarea>
+      <div id="transfer-msg" class="subtitle"></div>
+      <div class="menu-buttons">
+        <button id="transfer-copy">COPY CODE</button>
+        <button id="transfer-save">SAVE AS FILE</button>
+        <button id="transfer-load">LOAD FILE</button>
+        <button id="transfer-go">IMPORT</button>
+      </div>
+      <button id="transfer-back" class="big">BACK</button>
+      <input type="file" id="transfer-file" accept=".txt,text/plain" class="hidden">
+    </div>
+  </div>
+
+  <div id="controls-screen" class="overlay hidden">
+    <div class="menu-inner records-inner">
+      <div id="controls-title" class="title"></div>
+      <div id="keys-help" class="subtitle">CLICK AN ACTION, THEN PRESS ITS NEW KEY. ESC CANCELS.</div>
+      <div id="keys-list" class="panel keys-list"></div>
+      <div id="pad-help" class="subtitle">CONTROLLER: LEFT STICK MOVE &middot; RIGHT STICK AIM &middot; RT SHOOT &middot; LT SNIPER SCOPE &middot; X RELOAD &middot; A USE &middot; Y GRENADE &middot; B DASH &middot; LB / RB SWITCH GUN &middot; START PAUSE<br>IN MENUS: D-PAD OR LEFT STICK TO MOVE, A TO PRESS, B TO GO BACK</div>
+      <div class="menu-buttons">
+        <button id="keys-reset">RESET TO DEFAULT</button>
+        <button data-act="back" class="big">BACK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ACHIEVEMENTS & RECORDS -->
+  <div id="records" class="overlay hidden">
+    <div class="menu-inner records-inner">
+      <div id="records-title" class="title"></div>
+      <div id="records-body" class="panel records-body"></div>
+      <button data-act="back" class="big">BACK</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/lexicon.js"></script>
+<script src="js/config.js"></script>
+<script src="js/tips.js"></script>
+<script src="js/difficulty.js"></script>
+<script src="js/levels.js"></script>
+<script src="js/controls.js"></script>
+<script src="js/campaign.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/transfer.js"></script>
+<script src="js/modifiers.js"></script>
+<script src="js/records.js"></script>
+<script src="js/cosmetics.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/music.js"></script>
+<script src="js/font.js"></script>
+<script src="js/art.js"></script>
+<script src="js/map.js"></script>
+<script src="js/renderer.js"></script>
+<script src="js/input.js"></script>
+<script src="js/effects.js"></script>
+<script src="js/doors.js"></script>
+<script src="js/switches.js"></script>
+<script src="js/traps.js"></script>
+<script src="js/barrels.js"></script>
+<script src="js/gadgets.js"></script>
+<script src="js/breakables.js"></script>
+<script src="js/mapfx.js"></script>
+<script src="js/blast.js"></script>
+<script src="js/player.js"></script>
+<script src="js/weapons.js"></script>
+<script src="js/playershots.js"></script>
+<script src="js/mines.js"></script>
+<script src="js/enemies.js"></script>
+<script src="js/spawner.js"></script>
+<script src="js/elites.js"></script>
+<script src="js/combo.js"></script>
+<script src="js/bossfight.js"></script>
+<script src="js/drill.js"></script>
+<script src="js/tutorial.js"></script>
+<script src="js/cutscene.js"></script>
+<script src="js/hud.js"></script>
+<script src="js/menu.js"></script>
+<script src="js/screenfit.js"></script>
+<script src="js/game.js"></script>
+<script>ScreenFit.init();</script>
+<script>
+// Web app version (installed from Edge or Brave): keep a copy of the game so it starts offline.
+// Not used by the desktop program or when the page is opened as a file.
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || ['localhost', '127.0.0.1'].includes(location.hostname))) {
+  // an update took over while the game was open: reload once so the new version runs right away
+  const hadOne = !!navigator.serviceWorker.controller;
+  let reloaded = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => { if (hadOne && !reloaded) { reloaded = true; location.reload(); } });
+  navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(() => {});
+}
+</script>
+</body>
+</html>
