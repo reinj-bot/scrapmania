@@ -5,6 +5,8 @@ const Input = {
   keys: {},
   pressed: {},
   mouseDX: 0,
+  avgDX: 0,          // recent typical mouse movement (to spot impossible jumps)
+  skipMoves: 0,      // mouse moves to ignore right after the mouse gets captured
   mouseDown: false,
   mouseClicked: false,
   rightDown: false,
@@ -27,7 +29,13 @@ const Input = {
     window.addEventListener('keyup', e => { this.keys[e.code] = false; });
     window.addEventListener('blur', () => { this.keys = {}; this.mouseDown = false; this.rightDown = false; });
     document.addEventListener('mousemove', e => {
-      if (this.locked || this.freeMouse) this.mouseDX += e.movementX || 0;
+      // Browsers sometimes report one huge fake jump while the mouse is captured (a known glitch,
+      // mostly right after it gets captured): ignore it instead of spinning the view around.
+      let dx = e.movementX || 0;
+      if (this.skipMoves > 0) { this.skipMoves--; dx = 0; }
+      if (Math.abs(dx) > 250 && Math.abs(dx) > 12 * (this.avgDX + 4)) dx = 0;
+      this.avgDX = this.avgDX * 0.8 + Math.abs(dx) * 0.2;
+      if (this.locked || this.freeMouse) this.mouseDX += dx;
       const rect = canvas.getBoundingClientRect();
       this.mouseX = (e.clientX - rect.left) / rect.width;
       this.mouseInside = this.mouseX >= 0 && this.mouseX <= 1 && e.clientY >= rect.top && e.clientY <= rect.bottom;
@@ -45,7 +53,7 @@ const Input = {
     canvas.addEventListener('wheel', e => { this.wheel += Math.sign(e.deltaY); e.preventDefault(); }, { passive: false });
     document.addEventListener('pointerlockchange', () => {
       this.locked = document.pointerLockElement === canvas;
-      if (this.locked) this.everLocked = true;
+      if (this.locked) { this.everLocked = true; this.skipMoves = 2; this.avgDX = 0; }
       if (!this.locked) { this.mouseDown = false; this.rightDown = false; }
       if (this.onLockChange) this.onLockChange(this.locked);
     });

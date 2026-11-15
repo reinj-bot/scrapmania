@@ -1,6 +1,6 @@
 'use strict';
 // Offline helper for the installed Scrapmania app (made by tools/web/make-web.js - don't edit).
-const CACHE = 'scrapmania-6fb9d600a0';
+const CACHE = 'scrapmania-1e394ff486';
 const FILES = ['./', "./css/style.css", "./icon.ico", "./icons/icon-192.png", "./icons/icon-512.png", "./index.html", "./js/art.js", "./js/audio.js", "./js/barrels.js", "./js/blast.js", "./js/bossfight.js", "./js/breakables.js", "./js/campaign.js", "./js/combo.js", "./js/config.js", "./js/controls.js", "./js/cosmetics.js", "./js/cutscene.js", "./js/difficulty.js", "./js/doors.js", "./js/drill.js", "./js/effects.js", "./js/elites.js", "./js/enemies.js", "./js/font.js", "./js/gadgets.js", "./js/game.js", "./js/hud.js", "./js/input.js", "./js/levels.js", "./js/lexicon.js", "./js/map.js", "./js/mapfx.js", "./js/menu.js", "./js/mines.js", "./js/modifiers.js", "./js/music.js", "./js/player.js", "./js/playershots.js", "./js/records.js", "./js/renderer.js", "./js/screenfit.js", "./js/spawner.js", "./js/storage.js", "./js/switches.js", "./js/tips.js", "./js/transfer.js", "./js/traps.js", "./js/tutorial.js", "./js/weapons.js", "./logo.png", "./manifest.webmanifest"];
 
 self.addEventListener('install', e => {
