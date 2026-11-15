@@ -75,11 +75,21 @@ const Cutscene = {
 
   // A spot `dist` tiles from (x, y) with a clear view of it, facing it.
   viewpoint(x, y, dist) {
-    for (const d of [dist, dist + 1, dist - 1, dist + 2, dist - 2, 3]) {
-      for (let k = 0; k < 48; k++) {
-        const a = k / 48 * Math.PI * 2, vx = x + Math.cos(a) * d, vy = y + Math.sin(a) * d;
-        if (Level.isBlocked(vx, vy) || !Level.hasLOS(vx, vy, x, y)) continue;
-        return { x: vx, y: vy, angle: a + Math.PI };
+    // first try spots where no crate, pipe or barrel stands between the camera and the target
+    // (one right in front of the camera fills the whole screen)
+    const props = [...Breakables.list, ...Barrels.list].filter(o => o.alive);
+    const clear = (vx, vy) => props.every(o => {
+      const lx = x - vx, ly = y - vy, l2 = lx * lx + ly * ly || 1;
+      const k = Math.max(0, Math.min(1, ((o.x - vx) * lx + (o.y - vy) * ly) / l2));
+      return Math.hypot(vx + lx * k - o.x, vy + ly * k - o.y) > 0.8;
+    });
+    for (const strict of [true, false]) {
+      for (const d of [dist, dist + 1, dist - 1, dist + 2, dist - 2, 3]) {
+        for (let k = 0; k < 48; k++) {
+          const a = k / 48 * Math.PI * 2, vx = x + Math.cos(a) * d, vy = y + Math.sin(a) * d;
+          if (Level.isBlocked(vx, vy) || !Level.hasLOS(vx, vy, x, y) || (strict && !clear(vx, vy))) continue;
+          return { x: vx, y: vy, angle: a + Math.PI };
+        }
       }
     }
     return { x, y, angle: 0 };
@@ -139,9 +149,9 @@ const CUTSCENES = {
     },
   },
 
-  // The Warden arrives: alarm, cut to it, it powers up, name card, back to the player.
+  // The Warden arrives: alarm, cut to it, it rises slowly out of the floor, name card, back to the player.
   warden: {
-    length: 5.2,
+    length: 6.4, RISE: 3,
     start(game, d) {
       const b = game.boss;
       d.view = Cutscene.viewpoint(b.x, b.y, 6);
@@ -151,19 +161,24 @@ const CUTSCENES = {
     },
     tick(game, d, t, prev, dt) {
       const b = d.boss;
-      if (t > 0.6) b.timer = Math.max(0, 1.5 - (t - 0.6) * 0.8); // materializes
-      if (Math.random() < dt * 10 && t > 0.6 && t < 2.6) {
-        Effects.burst(b.x + (Math.random() - 0.5), b.y + (Math.random() - 0.5), 0.3 + Math.random(), { count: 6, colors: ['#ff4020', '#ffffff', '#ff60f0'], speed: 2, up: 3, size: 0.04, life: 0.6 });
-        Effects.addLight(b.x, b.y, [1, 0.3, 0.2], 6, 1.4, 0.3);
+      const up = 0.6 + this.RISE; // fully out of the floor
+      if (t > 0.6) b.timer = Math.max(0, 1.5 * (1 - (t - 0.6) / this.RISE)); // rising
+      if (t > 0.6 && t < up) {
+        game.shakeAmount = Math.max(game.shakeAmount, 0.18); // the ground rumbles
+        if (Math.random() < dt * 22) { // broken floor and sparks around it
+          const a = Math.random() * Math.PI * 2, r = 0.5 + Math.random() * 0.5;
+          Effects.burst(b.x + Math.cos(a) * r, b.y + Math.sin(a) * r, 0.04, { count: 3, colors: ['#5a5048', '#8a8070', '#ff6030', '#ffd080'], speed: 1.2, up: 2, size: 0.04, life: 0.7 });
+        }
+        if (Math.random() < dt * 4) Effects.addLight(b.x, b.y, [1, 0.3, 0.2], 5, 1.2, 0.3);
+        if (Math.floor(prev * 1.6) !== Math.floor(t * 1.6)) Sound.play('stomp', 0.35);
       }
-      if (prev < 2.4 && t >= 2.4) { Sound.play('boss_roar', 1.2); game.shake(0.8); }
-      if (prev < 2.4 && t >= 2.4) Sound.play('stomp', 1);
+      if (prev < up && t >= up) { Sound.play('boss_roar', 1.2); Sound.play('stomp', 1); game.shake(0.8); }
       game.shakeAmount = Math.max(0, game.shakeAmount - dt * 1.5);
       b.animTime += dt;
     },
     camera(game, d, t) {
       if (t < 0.6) return game.camera(0); // a moment of the alarm from the player's eyes
-      const C = Cutscene, v = d.view, b = d.boss, k = C.ease((t - 0.6) / 4);
+      const C = Cutscene, v = d.view, b = d.boss, k = C.ease((t - 0.6) / 5.2);
       // slow push towards the Warden, lower angle so it looks huge
       const x = C.lerp(v.x, b.x, k * 0.35), y = C.lerp(v.y, b.y, k * 0.35);
       const shake = game.shakeAmount;
@@ -179,17 +194,18 @@ const CUTSCENES = {
         Font.draw(ctx, 'WARNING', W / 2, VH / 2 - 6, '#ff4030', 2, 'center');
         return;
       }
-      C.bars(ctx, W, VH, Math.min(1, (t - 0.6) * 3) * (1 - C.ease((t - 4.6) / 0.5)));
-      if (t > 2.4) {
-        const a = Math.min(1, (t - 2.4) * 3) * (1 - C.ease((t - 4.4) / 0.5));
-        const slide = Math.round((1 - C.ease((t - 2.4) * 2.5)) * 60);
+      const up = 0.6 + this.RISE;
+      C.bars(ctx, W, VH, Math.min(1, (t - 0.6) * 3) * (1 - C.ease((t - up - 2.2) / 0.5)));
+      if (t > up) {
+        const a = Math.min(1, (t - up) * 3) * (1 - C.ease((t - up - 2) / 0.5));
+        const slide = Math.round((1 - C.ease((t - up) * 2.5)) * 60);
         ctx.globalAlpha = Math.max(0, a);
         Font.draw(ctx, 'THE WARDEN', W / 2 - slide, VH - 46, '#ff4020', 3, 'center', '#300404');
         Font.draw(ctx, 'GUARDIAN OF SECTOR 7', W / 2 + slide, VH - 24, '#c8d0d8', 1, 'center');
         ctx.globalAlpha = 1;
       }
       C.fade(ctx, W, VH, '#000', 1 - (t - 0.6) * 4);       // quick fade in after the cut
-      C.fade(ctx, W, VH, '#000', (t - 4.8) * 3);            // and out at the end
+      C.fade(ctx, W, VH, '#000', (t - this.length + 0.4) * 3); // and out at the end
     },
     end(game, d) {
       const b = d.boss;
@@ -305,9 +321,9 @@ const CUTSCENES = {
   },
 
   s4: {
-    length: 48.5,
-    CUT: 1.4, REACH: 3, GRX: 4, RX: 4.4, BACK: 5.4, TALK: 7, LINE: 5, P3: 6,
-    SHOTS: ['warden', 'flash', 'flash', 'warden', 'face', 'wide', 'warden', 'wide'],
+    length: 63.5,
+    CUT: 1.4, REACH: 3, GRX: 4, RX: 4.4, BACK: 5.4, TALK: 7, LINE: 5, P3: 6, P5: 4, GOLD: 7,
+    SHOTS: ['warden', 'flash', 'flash', 'warden', 'rec', 'rec', 'rec', 'face', 'wide', 'warden', 'wide'],
     start(game, d) {
       const b = game.boss, p = game.player;
       d.boss = b;
@@ -398,6 +414,12 @@ const CUTSCENES = {
       if (at(fb + 2 * fk)) Sound.play('zap', 0.5);
       if (at(fb + 3 * fk)) { Sound.play('glass', 1); Sound.play('glass', 0.7); }
       if (at(fb + 3.9 * fk)) Sound.play('dash', 0.6);
+      const h0 = this.TALK + this.P5 * this.LINE, L = this.LINE;
+      if (at(h0)) Sound.play('teleport', 0.4);
+      for (const [k, snd, v] of [[1.8, 'zap', 0.35], [2.4, 'robot_die', 0.35], [3.3, 'robot_die', 0.3], [L + 0.8, 'stomp', 0.4], [L + 1.4, 'stomp', 0.4],
+        [L + 2.2, 'zap', 0.3], [L + 2.6, 'robot_die', 0.35], [L + 3.4, 'robot_die', 0.4], [L + 4, 'robot_die', 0.4], [2 * L + 1, 'switch_on', 0.4], [2 * L + 3.6, 'boss_charge', 0.4]]) {
+        if (at(h0 + k)) Sound.play(snd, v);
+      }
       for (let i = 0; i < d.lines.length; i++) if (at(this.TALK + i * this.LINE)) Sound.play('robot_alert', 0.35);
       const li = (t - this.TALK) / this.LINE;
       if (li >= 0 && li < d.lines.length && (li % 1) * this.LINE < d.lines[li | 0].length / 30 && Math.random() < dt * 12) {
@@ -426,7 +448,7 @@ const CUTSCENES = {
       } else {
         const shot = t < this.TALK ? 'face' : this.SHOTS[Math.min(this.SHOTS.length - 1, Math.floor(lineAt))];
         const k = t < this.TALK ? C.ease((t - this.BACK) / 1.6) : C.ease(lineAt % 1);
-        if (shot === 'flash') { game.extraSprites = null; return null; }
+        if (shot === 'flash' || shot === 'rec') { game.extraSprites = null; return null; }
         if (shot === 'face') {
           cam = look(C.lerp(d.close.x, p.x, k * 0.15), C.lerp(d.close.y, p.y, k * 0.15), p.x, p.y, 0.85, 0.68);
         } else if (shot === 'warden') {
@@ -496,6 +518,8 @@ const CUTSCENES = {
       }
       const fb = t - (this.TALK + this.LINE);
       if (fb >= 0 && fb < this.LINE * 2) this.p3(ctx, d, fb * this.P3 / (this.LINE * 2), W, VH);
+      const rb = t - (this.TALK + this.P5 * this.LINE);
+      if (rb >= 0 && rb < this.LINE * 3) this.p5(ctx, d, rb, W, VH);
       C.bars(ctx, W, VH, 0.65);
       if (t > this.RX + 0.6 && t < this.TALK + 0.4) {
         const a = Math.min(1, this.TALK + 0.4 - t);
@@ -511,7 +535,7 @@ const CUTSCENES = {
         const i = Math.min(li, d.lines.length - 1);
         const s = C.type(d.lines[i], t, this.TALK + i * this.LINE, 30);
         Font.draw(ctx, 'THE WARDEN', 8, VH - 24, '#ff4020', 1, 'left', null);
-        if (s) Font.draw(ctx, s, 8, VH - 13, i === 4 ? '#ffd040' : '#e8ecf0', 1, 'left', null);
+        if (s) Font.draw(ctx, s, 8, VH - 13, i === this.GOLD ? '#ffd040' : '#e8ecf0', 1, 'left', null);
       }
       C.fade(ctx, W, VH, '#ffffff', 1 - (t - this.CUT) * 3);
       C.fade(ctx, W, H, '#ffffff', (t - this.length + 1.4) * 1.2);
@@ -593,6 +617,137 @@ const CUTSCENES = {
       });
       C.fade(ctx, W, VH, '#ffffff', 1 - ft * 4);
       C.fade(ctx, W, VH, '#ffffff', (ft - (this.P3 - 0.25)) * 4);
+    },
+    // Drawn panel P5, three parts (one per line).
+    p5(ctx, d, ht, W, VH) {
+      const C = Cutscene, L = this.LINE, gy = VH - 40, rnd = Math.random;
+      if (!d.rec) {
+        const town = [];
+        for (let x = -4; x < W;) { const w = 16 + (rnd() * 24 | 0); town.push({ x, w, h: 34 + (rnd() * 56 | 0), burn: 1.6 + rnd() * 3 }); x += w + 2; }
+        d.rec = {
+          stars: Array.from({ length: 70 }, () => [rnd() * W | 0, 18 + (rnd() * (gy - 50)) | 0, rnd() * 6]),
+          town,
+          ships: [[0.22, 40, 0], [0.52, 28, 0.5], [0.8, 46, 0.9]].map(([fx, y, dl], i) => ({ x: fx * W, y, dl, hit: 2.2 + i * 0.6 })),
+          people: Array.from({ length: 10 }, (_, i) => ({ x: 60 + i * 30 + rnd() * 14, v: 16 + rnd() * 12, fall: 1.8 + rnd() * 3 })),
+          foes: Array.from({ length: 4 }, (_, i) => ({ x: W - 60 - i * 40, type: i % 2 ? 'xb' : 'xa', hit: 1.6 + i * 0.5 })),
+        };
+      }
+      const R = d.rec, part = Math.min(2, Math.floor(ht / L)), pt = ht - part * L;
+      const box = (x, y, w, h, col) => { ctx.fillStyle = col; ctx.fillRect(Math.round(x), Math.round(y), w, h); };
+      const spr = (type, x, bottom, size, f = 'walk0') => {
+        const set = Art.sprites[type] || Art.sprites.basic;
+        ctx.drawImage((set[f] || set.walk0).canvas, Math.round(x - size / 2), Math.round(bottom - size), size, size);
+      };
+      const fig = (x, y, coat, step) => {
+        box(x, y - 14, 4, 4, '#d8a07a'); box(x, y - 10, 4, 6, coat);
+        box(x + (step ? 0 : -1), y - 4, 2, 4, '#20242c'); box(x + (step ? 2 : 3), y - 4, 2, 4, '#20242c');
+      };
+      const ship = (x, y, red) => {
+        box(x - 12, y, 24, 4, '#3a3048'); box(x - 9, y - 1, 18, 1, '#6a5a84'); box(x - 4, y - 4, 8, 3, '#8adca0');
+        for (const o of [-9, -3, 3, 9]) box(x + o - 1, y + 4, 2, 1, red ? '#ff4030' : (((ht * 6) | 0) & 1 ? '#60ff80' : '#2a8040'));
+      };
+      const boom = (x, y, k) => {
+        if (k < 0 || k > 1) return;
+        const r = 3 + k * 10;
+        ctx.globalAlpha = 1 - k;
+        box(x - r, y - r, r * 2, r * 2, '#ff8030'); box(x - r / 2, y - r / 2, r, r, '#fff0c0');
+        ctx.globalAlpha = 1;
+      };
+      const sky = (glow) => {
+        box(0, 0, W, VH, '#070a14');
+        for (const [x, y, ph] of R.stars) box(x, y, 1, 1, Math.sin(ht * 2 + ph) > -0.6 ? '#c8d0e0' : '#4a5060');
+        if (glow > 0) { ctx.globalAlpha = glow; box(0, gy - 70, W, 70, '#ff4018'); ctx.globalAlpha = 1; }
+      };
+      const city = (when) => {
+        for (const b of R.town) {
+          const ruined = when > b.burn, h = ruined ? Math.round(b.h * 0.55) : b.h, top = gy - h;
+          box(b.x, top, b.w, h, ruined ? '#10141c' : '#18202e');
+          if (ruined) for (let x = 0; x < b.w; x += 4) box(b.x + x, top - ((x * 7 + b.w) % 5), 4, 5, '#10141c');
+          else for (let wx = 3; wx < b.w - 3; wx += 5) for (let wy = 5; wy < h - 4; wy += 7) if ((wx * 3 + wy) % 4) box(b.x + wx, top + wy, 2, 3, '#e0c060');
+          if (ruined && part < 2) for (let i = 0; i < 3; i++) {
+            const f = Math.sin(ht * 9 + b.x + i * 2);
+            box(b.x + 2 + i * (b.w - 6) / 2, top - 4 - f * 2, 3, 4 + f * 2, f > 0 ? '#ff9030' : '#ff5020');
+          }
+        }
+        box(0, gy, W, VH - gy, '#0c0e14');
+      };
+
+      if (part === 0) {
+        sky(0.04 + 0.14 * Math.min(1, pt / L));
+        city(pt);
+        for (const s of R.ships) ship(s.x + Math.sin(ht + s.dl) * 6, C.lerp(-10, s.y, C.ease((pt - s.dl) / 1.4)), false);
+        for (const b of R.town) {
+          const k = pt - b.burn;
+          if (k > -0.3 && k < 0) {
+            const s = R.ships.reduce((a, c) => Math.abs(c.x - b.x) < Math.abs(a.x - b.x) ? c : a);
+            const bx = b.x + b.w / 2, top = gy - b.h, sx = s.x + Math.sin(ht + s.dl) * 6, sy = s.y + 5;
+            for (let i = 0; i <= 24; i++) box(C.lerp(sx, bx, i / 24), C.lerp(sy, top, i / 24), 2, 2, '#90ff60');
+          }
+          boom(b.x + b.w / 2, gy - b.h * 0.6, k / 0.5);
+        }
+        for (const p of R.people) {
+          if (pt > p.fall) continue;
+          fig(p.x - p.v * pt, gy, '#4a6a9a', ((pt * 8) | 0) & 1);
+        }
+      } else if (part === 1) {
+        sky(0.12);
+        city(99);
+        const kinds = ['heavy', 'basic', 'ranged', 'basic'];
+        const robots = kinds.map((type, i) => ({ type, x: 30 + i * 46 - (1 - C.ease(pt / 1.6)) * 200 }));
+        const targets = [];
+        for (const f of R.foes) {
+          const x = f.x - pt * 6;
+          if (pt < f.hit) { spr(f.type, x, gy, 32, ((pt * 5) | 0) & 1 ? 'walk1' : 'walk0'); targets.push([x, gy - 16]); }
+          boom(x, gy - 16, (pt - f.hit) / 0.6);
+        }
+        for (const s of R.ships) {
+          const x = s.x + Math.sin(ht + s.dl) * 6, k = pt - s.hit;
+          if (k < 0) { ship(x, s.y, false); targets.push([x, s.y + 2]); continue; }
+          const y = s.y + k * k * 90;
+          if (y < gy - 4) { ship(x + k * 20, y, true); box(x + k * 20 - 2, y - 6, 3, 4, '#5a5a60'); }
+          boom(x + k * 20, gy - 6, (y - (gy - 4)) / 60);
+        }
+        robots.forEach((r, i) => {
+          spr(r.type, r.x, gy, 44, pt > 1.4 && ((pt * 4 + i) | 0) % 3 === 0 ? 'attack' : (((pt * 5) | 0) + i) & 1 ? 'walk1' : 'walk0');
+          if (pt < 1.4 || !targets.length) return;
+          const tg = targets[(i + ((pt * 3) | 0)) % targets.length];
+          if (((pt * 9 + i * 3) | 0) % 4) return;
+          const x0 = r.x + 14, y0 = gy - 26;
+          for (let j = 0; j <= 30; j++) box(C.lerp(x0, tg[0], j / 30), C.lerp(y0, tg[1], j / 30), 1, 1, '#ffe060');
+        });
+      } else {
+        box(0, 0, W, VH, '#0a1418');
+        for (let x = 0; x < W; x += 24) box(x, 0, 1, VH, '#10222a');
+        for (let y = 0; y < VH; y += 24) box(0, y, W, 1, '#10222a');
+        const wx = W / 2 - 80, wy = 22, ww = 160, wh = 44;
+        box(wx - 3, wy - 3, ww + 6, wh + 6, '#3a464e');
+        box(wx, wy, ww, wh, '#04060c');
+        for (const [x, y] of R.stars) if (x > wx && x < wx + ww && y < wy + wh - 2) box(x, y + 2, 1, 1, '#a8b0c0');
+        for (const [ox, oy, ph] of [[30, 14, 0], [96, 9, 1.3], [128, 24, 2.1]]) if (Math.sin(ht * 5 + ph) > 0) box(wx + ox, wy + oy, 2, 2, '#ff4030');
+        const fy = gy - 8; // the floor here sits higher, so the people stay above the subtitles
+        const pods = ['basic', 'heavy', 'boss', 'ranged', 'fast'];
+        pods.forEach((type, i) => {
+          const x = W * (0.14 + i * 0.18), on = pt > 0.8 + i * 0.45, top = fy - 62;
+          box(x - 20, top - 6, 40, 6, '#4a5258'); box(x - 20, fy, 40, 6, '#4a5258');
+          box(x - 17, top, 34, fy - top, on ? 'rgba(40,190,130,0.35)' : 'rgba(30,60,60,0.5)');
+          spr(type, x, fy, type === 'boss' ? 58 : 46);
+          box(x - 17, top, 34, fy - top, 'rgba(160,255,220,0.10)');
+          box(x - 14, top + 3, 2, fy - top - 6, 'rgba(220,255,240,0.3)');
+          box(x - 3, fy + 2, 6, 2, on ? '#40ff80' : '#ff3020');
+        });
+        fig(W * 0.23 + 6, fy + 16, '#e8ecf0', 0); fig(W * 0.5 + 30, fy + 16, '#e8ecf0', 1); fig(W * 0.77 - 8, fy + 16, '#e8ecf0', 0);
+        box(W * 0.5 + 20, fy + 8, 8, 4, '#2a3a40'); box(W * 0.5 + 21, fy + 9, 6, 2, ((ht * 3) | 0) & 1 ? '#40e0ff' : '#2090c0');
+      }
+
+      ctx.fillStyle = 'rgba(120,160,255,0.06)'; ctx.fillRect(0, 0, W, VH);
+      if (((ht * 24) | 0) % 9 === 0) { ctx.fillStyle = 'rgba(255,255,255,0.05)'; ctx.fillRect(0, 0, W, VH); }
+      ctx.fillStyle = 'rgba(0,0,0,0.25)';
+      for (let i = 0; i < 3; i++) ctx.fillRect(0, ((ht * 83 + i * 61) % VH) | 0, W, 1);
+      Font.draw(ctx, Lex.r4, W - 8, 22, '#90b0d0', 1, 'right', null);
+      const cap = C.type([Lex.r1, Lex.r2, Lex.r3][part], pt, 0.2, 32);
+      if (cap) Font.draw(ctx, cap, 8, 22, '#40e0ff', 1, 'left', null);
+      C.fade(ctx, W, VH, '#000', 1 - pt * 4);
+      C.fade(ctx, W, VH, '#000', (pt - (L - 0.25)) * 4);
     },
     end(game, d) {
       game.extraSprites = null;

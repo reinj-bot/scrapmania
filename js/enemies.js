@@ -498,6 +498,11 @@ class Robot {
       const glow = ((this.animTime * 10) | 0) & 1 ? 0xffa040ff : 0xffd080ff;
       return { x: this.x, y: this.y, z: -k * this.def.height, h: this.def.height, sprite: frames.walk0, mirror: this.mirror, outline: glow, sink: true };
     }
+    if (this.state === 'spawning' && this.def.boss) {
+      // the Warden rises slowly out of the floor (BossFight.spawn sets timer 1.5, the cutscene counts it down)
+      const k = Math.min(1, this.timer / 1.5);
+      return { x: this.x, y: this.y, z: -k * this.def.height, h: this.def.height, sprite: frames.walk0, mirror: this.mirror, flash, sink: true };
+    }
     if (this.state === 'spawning') { img = frames.walk0; fade = 1 - this.timer / 0.7; }
     else if (this.state === 'dying') { img = this.timer > 0.22 ? frames.die0 : frames.die1; z = 0; }
     else if (this.state === 'wreck') { img = frames.wreck; fade = Math.min(1, this.timer / 1.5); z = 0; }

@@ -42,7 +42,7 @@ const BossFight = {
   spawn(game) {
     const s = Level.bossSpawn;
     const b = new Robot('boss', s.x, s.y, game.diff, true);
-    b.timer = 1.5; // materializes slowly
+    b.timer = 1.5; // rises slowly out of the floor (see the warden cutscene)
     game.robots.push(b);
     game.boss = b;
     game.run.bossDamage = 0;
