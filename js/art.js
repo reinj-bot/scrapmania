@@ -1281,7 +1281,7 @@ const Art = {
       // hair on his left side and top
       r(12, 2, 5, 2, hair); r(16, 3, 1, 2, hair);
       // his left eye, brow, nose and mouth
-      r(13, 4, 3, 1, hair); r(13, 5, 2, 1, '#ffffff'); r(14, 5, 1, 1, iris);
+      r(13, 4, 3, 1, hair); r(13, 5, 2, 1, '#ffffff'); r(13, 5, 1, 1, iris); // colored part toward the nose, white on the outside
       r(12, 7, 1, 2, skinDark); r(10, 9, 5, 1, '#8a4a3a');
       // upper half of his right face is a metal plate with a glowing machine eye
       r(7, 2, 5, 6, metal); r(7, 2, 5, 1, metalLight); r(7, 3, 1, 4, metalLight);
