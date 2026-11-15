@@ -594,7 +594,7 @@ const Art = {
     barrel: { body: '#9a2a1a', dark: '#5a1a10', light: '#d05030', joint: '#2a2a2a' },
     bomber: { body: '#3a3f48', dark: '#24272c', light: '#6a7280', joint: '#141414', eye: '#ff3030', glow: '#ffc0b0', accent: '#e0b020' },
     shield: { body: '#3a4a6a', dark: '#232e44', light: '#6a80a8', joint: '#161c28', eye: '#60e0ff', glow: '#ffffff', accent: '#60e0ff' },
-    phantom: { body: '#2a1a3a', dark: '#160c20', light: '#5a3a7a', joint: '#0a0610', eye: '#ff40f0', glow: '#ffffff', accent: '#c040ff' },
+    phantom: { body: '#3a2a4e', dark: '#1e1430', light: '#6e5a8e', joint: '#0e0816', eye: '#ff40f0', glow: '#ffffff', accent: '#c040ff', core: '#ffd040', coreGlow: '#fff4b0', coreRail: '#a08020' },
     carrier: { body: '#5a6a4a', dark: '#36402c', light: '#8a9a72', joint: '#1e2024', eye: '#ffb020', glow: '#fff0c0', accent: '#ff9a30' },
     boss: { body: '#4a4f5a', dark: '#2a2d34', light: '#7a8090', joint: '#16181c', eye: '#ff4020', glow: '#ffd0a0', accent: '#ff60f0' },
     xa: { body: '#5a2a6a', dark: '#2e1438', light: '#9a5ab0', joint: '#14081a', eye: '#80ff40', glow: '#e0ffc0', accent: '#80ff40' },
@@ -714,18 +714,24 @@ const Art = {
     },
 
     // hooded ghost robot, floats on a ragged trail instead of legs
+    // PHANTOM: an armored hover-robot; the glowing yellow core in its chest powers its teleport
     phantom(r, f, P) {
       const atk = f === 'attack', s = f === 'walk1' ? 1 : 0;
-      r(11, 2, 10, 9, P.dark); r(10, 4, 12, 7, P.dark); r(12, 3, 8, 1, P.light);
-      r(12, 6, 3, 2, P.eye); r(17, 6, 3, 2, P.eye); r(13, 6, 1, 1, P.glow); r(18, 6, 1, 1, P.glow);
-      r(9, 11, 14, 10, P.body); r(10, 12, 12, 1, P.light); r(14, 14, 4, 3, P.accent);
-      for (let i = 0; i < 7; i++) r(9 + i * 2, 21, 2, 4 + ((i + s) % 3) * 2, i % 2 ? P.body : P.dark);
+      r(15, 0, 2, 2, P.dark); r(15, 0, 1, 1, P.eye);
+      r(11, 2, 10, 8, P.body); r(11, 2, 10, 1, P.light); r(10, 4, 1, 4, P.dark); r(21, 4, 1, 4, P.dark);
+      r(12, 5, 8, 2, '#0a0610'); r(13, 5, 2, 2, P.eye); r(17, 5, 2, 2, P.eye); r(13, 5, 1, 1, P.glow); r(17, 5, 1, 1, P.glow);
+      r(14, 10, 4, 2, P.joint);
+      r(9, 12, 14, 10, P.body); r(9, 12, 14, 1, P.light); r(9, 21, 14, 1, P.dark);
+      r(7, 12, 3, 4, P.light); r(22, 12, 3, 4, P.light);
+      r(13, 14, 6, 6, P.dark); r(14, 15, 4, 4, P.core); r(15, 16, 2, 2, P.coreGlow);
+      r(12, 16, 1, 2, P.coreRail); r(19, 16, 1, 2, P.coreRail);
+      r(11, 22, 10, 3, P.dark); r(12, 25, 8, 2, P.joint); r(13, 27, 6, 1 + s, P.core); r(14, 28 + s, 4, 2, P.coreGlow);
       if (atk) {
-        r(3, 9, 6, 3, P.body); r(23, 9, 6, 3, P.body);
-        for (let i = 0; i < 3; i++) { r(1, 7 + i * 2, 3, 1, P.eye); r(28, 7 + i * 2, 3, 1, P.eye); }
+        r(3, 11, 6, 3, P.body); r(23, 11, 6, 3, P.body);
+        for (let i = 0; i < 3; i++) { r(1, 10 + i * 2, 2, 1, P.eye); r(29, 10 + i * 2, 2, 1, P.eye); }
       } else {
-        r(6, 12 + s, 3, 8, P.body); r(23, 13 - s, 3, 8, P.body);
-        r(6, 20 + s, 1, 2, P.eye); r(8, 20 + s, 1, 2, P.eye); r(23, 21 - s, 1, 2, P.eye); r(25, 21 - s, 1, 2, P.eye);
+        r(6, 16 + s, 3, 7, P.body); r(23, 17 - s, 3, 7, P.body);
+        r(6, 23 + s, 3, 2, P.dark); r(23, 24 - s, 3, 2, P.dark);
       }
     },
 
@@ -894,11 +900,15 @@ const Art = {
     const solid = (x, y) => x >= 0 && y >= 0 && x < W && y < c.height && d[(y * W + x) * 4 + 3] > 128;
     const seed = type.length * 31 + (theme === 'cryo' ? 7 : 13);
     const out = new Uint8ClampedArray(d);
+    // glowing parts that keep their own color on every map (e.g. the Phantom's yellow core)
+    const P = this.palettes[type] || {};
+    const keep = new Set([P.core, P.coreGlow, P.coreRail].filter(Boolean).map(h => parseInt(h.slice(1), 16)));
     for (let y = 0; y < c.height; y++) {
       for (let x = 0; x < W; x++) {
         if (!solid(x, y)) continue;
         const i = (y * W + x) * 4, h = this.hash(x, y, seed);
         let r = d[i], g = d[i + 1], b = d[i + 2];
+        if (keep.has((r << 16) | (g << 8) | b)) continue;
         const lum = (r + g + b) / 3;
         if (theme === 'cryo') {
           // cold blue tint; snow and frost where the top of a shape is exposed

@@ -424,7 +424,7 @@ class Robot {
   }
 
   teleportBurst() {
-    Effects.burst(this.x, this.y, 0.5, { count: 14, colors: ['#c040ff', '#ff60f0', '#ffffff'], speed: 1.6, up: 1.5, size: 0.03, life: 0.45, gravity: 0 });
+    Effects.burst(this.x, this.y, 0.5, { count: 14, colors: ['#ffd040', '#fff4b0', '#ff60f0'], speed: 1.6, up: 1.5, size: 0.03, life: 0.45, gravity: 0 }); // the yellow core's power
   }
 
   alert(game) {

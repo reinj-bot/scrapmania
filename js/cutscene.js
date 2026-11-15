@@ -305,9 +305,9 @@ const CUTSCENES = {
   },
 
   s4: {
-    length: 29.5,
+    length: 32.5,
     CUT: 1.4, REACH: 3, GRX: 4, RX: 4.4, BACK: 5.4, TALK: 7, LINE: 3,
-    SHOTS: ['warden', 'face', 'warden', 'face', 'wide', 'warden', 'wide'],
+    SHOTS: ['warden', 'flash', 'flash', 'warden', 'face', 'wide', 'warden', 'wide'],
     start(game, d) {
       const b = game.boss, p = game.player;
       d.boss = b;
@@ -393,6 +393,11 @@ const CUTSCENES = {
         Effects.burst(p.x + d.u.x * 0.1, p.y + d.u.y * 0.1, 0.7, { count: 16, colors: ['#ffffff', '#40e0ff'], speed: 1.2, up: 1, size: 0.02, life: 0.5 });
       }
       if (at(this.BACK)) Sound.play('boss_charge', 0.5);
+      const fb = this.TALK + this.LINE;
+      if (at(fb)) Sound.play('teleport', 0.4);
+      if (at(fb + 2)) Sound.play('zap', 0.5);
+      if (at(fb + 3)) { Sound.play('glass', 1); Sound.play('glass', 0.7); }
+      if (at(fb + 3.9)) Sound.play('dash', 0.6);
       for (let i = 0; i < d.lines.length; i++) if (at(this.TALK + i * this.LINE)) Sound.play('robot_alert', 0.35);
       const li = (t - this.TALK) / this.LINE;
       if (li >= 0 && li < d.lines.length && (li % 1) * this.LINE < d.lines[li | 0].length / 30 && Math.random() < dt * 12) {
@@ -421,6 +426,7 @@ const CUTSCENES = {
       } else {
         const shot = t < this.TALK ? 'face' : this.SHOTS[Math.min(this.SHOTS.length - 1, Math.floor(lineAt))];
         const k = t < this.TALK ? C.ease((t - this.BACK) / 1.6) : C.ease(lineAt % 1);
+        if (shot === 'flash') { game.extraSprites = null; return null; }
         if (shot === 'face') {
           cam = look(C.lerp(d.close.x, p.x, k * 0.15), C.lerp(d.close.y, p.y, k * 0.15), p.x, p.y, 0.85, 0.68);
         } else if (shot === 'warden') {
@@ -488,6 +494,8 @@ const CUTSCENES = {
         C.fade(ctx, W, VH, '#ffffff', (t - 1.1) * 3);
         return;
       }
+      const fb = t - (this.TALK + this.LINE);
+      if (fb >= 0 && fb < this.LINE * 2) this.p3(ctx, d, fb, W, VH);
       C.bars(ctx, W, VH, 0.65);
       if (t > this.RX + 0.6 && t < this.TALK + 0.4) {
         const a = Math.min(1, this.TALK + 0.4 - t);
@@ -503,10 +511,88 @@ const CUTSCENES = {
         const i = Math.min(li, d.lines.length - 1);
         const s = C.type(d.lines[i], t, this.TALK + i * this.LINE, 30);
         Font.draw(ctx, 'THE WARDEN', 8, VH - 24, '#ff4020', 1, 'left', null);
-        if (s) Font.draw(ctx, s, 8, VH - 13, i === 3 ? '#ffd040' : '#e8ecf0', 1, 'left', null);
+        if (s) Font.draw(ctx, s, 8, VH - 13, i === 4 ? '#ffd040' : '#e8ecf0', 1, 'left', null);
       }
       C.fade(ctx, W, VH, '#ffffff', 1 - (t - this.CUT) * 3);
       C.fade(ctx, W, H, '#ffffff', (t - this.length + 1.4) * 1.2);
+    },
+    p3(ctx, d, ft, W, VH) {
+      const C = Cutscene, cx = W / 2, top = 20, bot = VH - 20;
+      if (!d.shards) {
+        d.shards = Array.from({ length: 26 }, () => ({ x: (Math.random() - 0.5) * 60, y: 10 + Math.random() * 100, vx: (Math.random() - 0.5) * 3, vy: -Math.random() * 1.5, s: 1 + (Math.random() * 3 | 0) }));
+        d.cracks = [[-10, 40], [8, 70], [-4, 100], [14, 55]].map(([x, y]) => {
+          const pts = [[x, y]];
+          for (let i = 0; i < 7; i++) { const [px, py] = pts[pts.length - 1]; pts.push([px + (Math.random() - 0.5) * 16, py + (Math.random() - 0.4) * 14]); }
+          return pts;
+        });
+      }
+      ctx.fillStyle = '#071410'; ctx.fillRect(0, 0, W, VH);
+      ctx.fillStyle = '#0c2018';
+      for (let x = 0; x < W; x += 24) ctx.fillRect(x, 0, 1, VH);
+      for (let y = 0; y < VH; y += 24) ctx.fillRect(0, y, W, 1);
+      for (const ox of [-140, -96, 96, 140]) {
+        ctx.fillStyle = '#14302a'; ctx.fillRect(cx + ox - 14, top + 18, 28, bot - top - 26);
+        ctx.fillStyle = '#1e5a48'; ctx.fillRect(cx + ox - 11, top + 24, 22, bot - top - 38);
+        ctx.fillStyle = '#2a7a60'; ctx.fillRect(cx + ox - 4, top + 50, 8, 26);
+      }
+      const broke = ft >= 3, gw = 34, gx = cx - gw, gy = top + 10, gh = bot - top - 22;
+      const s = 2.6, pw = 24 * s, ph = 32 * s;
+      let px = cx - pw / 2, py = gy + 8 + Math.sin(ft * 2) * 2;
+      if (ft > 3.6) {
+        const k = Math.min(1, (ft - 3.6) / 2);
+        px += C.ease(k) * W * 0.75;
+        py = gy + 14 - (k > 0 && k < 1 ? Math.abs(Math.sin(ft * 14)) * 3 : 0);
+      } else if (broke) py = gy + 8 + (ft - 3) * 10;
+      if (!broke) { ctx.fillStyle = 'rgba(40,190,130,0.35)'; ctx.fillRect(gx, gy, gw * 2, gh); }
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(d.p0.canvas, Math.round(px), Math.round(py), pw, ph);
+      if (ft > 2) {
+        ctx.fillStyle = `rgba(80,230,255,${0.5 + 0.4 * Math.abs(Math.sin(ft * 10))})`;
+        ctx.fillRect(Math.round(px + 9 * s), Math.round(py + 5 * s), Math.round(2 * s), Math.round(1.5 * s));
+      }
+      if (!broke) {
+        ctx.fillStyle = 'rgba(160,255,220,0.12)'; ctx.fillRect(gx, gy, gw * 2, gh);
+        ctx.fillStyle = 'rgba(220,255,240,0.35)'; ctx.fillRect(gx + 6, gy + 4, 3, gh - 8);
+        ctx.fillStyle = 'rgba(200,255,230,0.6)';
+        for (let i = 0; i < 14; i++) ctx.fillRect(gx + 6 + (i * 37) % (gw * 2 - 12), gy + gh - (ft * 30 + i * 23) % gh, 2, 2);
+        if (ft > 2) {
+          const k = Math.min(1, ft - 2);
+          ctx.fillStyle = '#e8fff6';
+          for (const pts of d.cracks) {
+            const n = Math.floor(k * (pts.length - 1));
+            for (let i = 0; i < n; i++) {
+              const [x0, y0] = pts[i], [x1, y1] = pts[i + 1], steps = 8;
+              for (let j = 0; j <= steps; j++) ctx.fillRect(Math.round(cx + x0 + (x1 - x0) * j / steps), Math.round(gy + y0 + (y1 - y0) * j / steps), 1, 1);
+            }
+          }
+        }
+      } else {
+        const st = ft - 3;
+        ctx.fillStyle = 'rgba(200,255,235,0.85)';
+        for (const sh of d.shards) {
+          const x = cx + sh.x + sh.vx * st * 60, y = gy + sh.y + sh.vy * st * 60 + 60 * st * st;
+          if (y < VH) ctx.fillRect(Math.round(x), Math.round(y), sh.s, sh.s);
+        }
+        ctx.fillStyle = 'rgba(40,190,130,0.45)';
+        const spill = Math.min(1, st * 1.5) * 50;
+        ctx.fillRect(gx - spill, gy + gh - 3, gw * 2 + spill * 2, 3);
+      }
+      ctx.fillStyle = '#4a5258'; ctx.fillRect(gx - 6, gy - 10, gw * 2 + 12, 10); ctx.fillRect(gx - 6, gy + gh, gw * 2 + 12, 12);
+      ctx.fillStyle = '#7a848c'; ctx.fillRect(gx - 6, gy - 10, gw * 2 + 12, 2);
+      ctx.fillStyle = broke ? '#ff3020' : '#40ff80'; ctx.fillRect(cx - 3, gy + gh + 4, 6, 3);
+      C.fade(ctx, W, VH, '#ffffff', 1 - Math.abs(ft - 3) * 5);
+      ctx.fillStyle = 'rgba(255,190,110,0.10)'; ctx.fillRect(0, 0, W, VH);
+      if (((ft * 24) | 0) % 7 === 0) { ctx.fillStyle = 'rgba(255,255,255,0.05)'; ctx.fillRect(0, 0, W, VH); }
+      ctx.fillStyle = 'rgba(0,0,0,0.25)';
+      for (let i = 0; i < 3; i++) ctx.fillRect(0, ((ft * 97 + i * 61) % VH) | 0, W, 1);
+      Font.draw(ctx, Lex.f5, W - 8, 22, '#c8b090', 1, 'right', null);
+      [[Lex.f1, 0.2, '#40e0ff'], [Lex.f2, 1.2, '#40e0ff'], [Lex.f3, 2.4, '#ff4030'], [Lex.f4, 3.8, '#ffb040']].forEach(([txt, at, col], i) => {
+        const str = C.type(txt, ft, at, 32);
+        const jitter = i >= 2 && ((ft * 20) | 0) % 5 === 0 ? 1 : 0;
+        if (str) Font.draw(ctx, str, 8 + jitter, 22 + i * 8, col, 1, 'left', null);
+      });
+      C.fade(ctx, W, VH, '#ffffff', 1 - ft * 4);
+      C.fade(ctx, W, VH, '#ffffff', (ft - (this.LINE * 2 - 0.25)) * 4);
     },
     end(game, d) {
       game.extraSprites = null;
