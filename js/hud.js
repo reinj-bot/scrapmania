@@ -121,6 +121,13 @@ const HUD = {
       ctx.fillStyle = col; ctx.fillRect(bx, 12, Math.round(bw * frac), 4);
       for (const t of [0.33, 0.66]) { ctx.fillStyle = '#000'; ctx.fillRect(bx + Math.round(bw * t), 12, 1, 4); }
       my = 21;
+    } else if (game.mode === 'drill' && Drill.lead && Drill.lead.state !== 'wreck') {
+      const q = Drill.lead, bw = 160, bx = Math.round(cx - bw / 2), frac = Math.max(0, q.hp / q.maxHp);
+      Font.draw(ctx, q.def.name, cx, 4, '#80ff40', 1, 'center');
+      ctx.fillStyle = '#000'; ctx.fillRect(bx - 1, 11, bw + 2, 6);
+      ctx.fillStyle = '#0c2a0c'; ctx.fillRect(bx, 12, bw, 4);
+      ctx.fillStyle = '#80ff40'; ctx.fillRect(bx, 12, Math.round(bw * frac), 4);
+      my = 21;
     } else if (game.miniBoss && game.miniBoss.alive) {
       const mb = game.miniBoss, bw = 110, bx = Math.round(cx - bw / 2), frac = Math.max(0, mb.hp / mb.maxHp);
       Font.draw(ctx, Elites.name(mb), cx, 4, '#ffd040', 1, 'center');
@@ -152,7 +159,8 @@ const HUD = {
     if (goal) {
       Font.draw(ctx, goal, 4, ty, '#40e0ff', 1, 'left');
     } else if (game.mode === 'drill') {
-      Font.draw(ctx, Lex.d5 + game.formatTime(Math.ceil(Math.max(0, Drill.LENGTH - game.time))), 4, ty, '#80ff40', 1, 'left');
+      Font.draw(ctx, Drill.lead ? Lex.q5 : Lex.d5 + game.formatTime(Math.ceil(Math.max(0, Drill.LENGTH - game.time))), 4, ty, '#80ff40', 1, 'left');
+      Font.draw(ctx, Lex.q8 + game.allies.length, 4, ty + 8, '#40e0ff', 1, 'left');
     } else if (boss) {
       Font.draw(ctx, 'DESTROY THE WARDEN', 4, ty, '#ff6040', 1, 'left');
     } else {

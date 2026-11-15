@@ -478,6 +478,7 @@ const Game = {
     this.addLevelSprites(sprites, time);
     for (const r of this.robots) sprites.push(r.sprite());
     for (const a of this.allies || []) sprites.push(a.sprite());
+    if (this.mode === 'drill') Drill.addSprites(sprites, time);
     for (const p of this.pickups) {
       const sprite = p.type === 'weapon' ? Art.sprites.weapon[p.weapon] : Art.sprites[p.type];
       sprites.push({ x: p.x, y: p.y, z: 0.05 + Math.sin(time * 3 + p.x) * 0.04, h: PICKUPS[p.type].height, sprite, bright: true });

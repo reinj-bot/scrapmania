@@ -50,6 +50,7 @@ const ACHIEVEMENTS = [
   { id: 'miniboss', name: 'BIGGER THEY ARE', text: 'DESTROY A MINI-BOSS', target: 1, value: t => t.byType.miniboss || 0, reward: 'CARD: HAZARD' },
   { id: 'campaign', name: 'LIGHTS OUT, SECTOR 7', text: 'FINISH THE STORY CAMPAIGN', target: 1, value: t => t.flags.campaign ? 1 : 0, reward: 'CARD: GOLD' },
   { id: 'overseer', name: 'WRONG PLACE, WRONG TIME', text: 'MEET THE OVERSEER (1 IN 10000)', target: 1, value: t => t.flags.overseer ? 1 : 0, secret: true },
+  { id: 'x8', name: Lex.q9, text: Lex.q10, target: 1, value: t => t.flags.x8 ? 1 : 0, secret: true, unseen: true, reward: Lex.q11 },
   { id: 'x7', name: Lex.a1, text: Lex.a2, target: 1, value: t => t.flags.x7 ? 1 : 0, secret: true, unseen: true, reward: Lex.a3 },
 ];
 

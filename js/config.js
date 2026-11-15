@@ -173,6 +173,14 @@ const ROBOTS = {
     name: Lex.d9, hp: 45, speed: 2.7, damage: 8, attackRange: 1.2, attackCooldown: 1.0,
     windup: 0.3, radius: 0.3, height: 0.9, score: 90, knockResist: 0.1, noSpawn: true, foe: true,
   },
+  xq: {
+    name: Lex.q1, hp: 1400, speed: 0.8, damage: 10, attackRange: 10, attackCooldown: 3,
+    windup: 0.7, radius: 0.6, height: 1.8, score: 2000, knockResist: 1, noSpawn: true, foe: true, lead: true, keepDistance: 5,
+  },
+  xe: {
+    name: Lex.q2, hp: 30, speed: 0, damage: 0, attackRange: 0, attackCooldown: 99,
+    windup: 0.3, radius: 0.25, height: 0.45, score: 20, knockResist: 1, noSpawn: true, foe: true, egg: true,
+  },
   xb: {
     name: Lex.d10, hp: 55, speed: 1.9, damage: 10, attackRange: 10, attackCooldown: 1.9,
     windup: 0.5, radius: 0.3, height: 1.05, score: 130, knockResist: 0.3, noSpawn: true, foe: true,
@@ -228,6 +236,7 @@ const AVATAR_OPTIONS = {
     { name: 'NEON', color: '#20e0ff', unlock: 'kills1000' },
     { name: 'CRIMSON', color: '#c02030', rank: 'SERGEANT' },
     { name: 'OBSIDIAN', color: '#303040', rank: 'COLONEL' },
+    { name: Lex.q12, color: '#5ac040', unlock: 'x8' },
   ],
   // ---- sections opened by achievements (see COSMETIC_SECTIONS in cosmetics.js) ----
   killFx: [

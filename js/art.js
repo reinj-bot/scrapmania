@@ -602,6 +602,8 @@ const Art = {
     sapper: { body: '#7a6a40', dark: '#463c24', light: '#a89a68', joint: '#1e1a12', eye: '#ff8020', glow: '#ffe0a0', accent: '#d03020' },
     medic: { body: '#d8dde2', dark: '#7a828c', light: '#ffffff', joint: '#3a4048', eye: '#40ff80', glow: '#e0ffe8', accent: '#30c060' },
     jumper: { body: '#4a5a8a', dark: '#2a3456', light: '#7a8ac0', joint: '#141a2a', eye: '#ff40a0', glow: '#ffd0e8', accent: '#ff40a0' },
+    xq: { body: '#4a7a2a', dark: '#24400f', light: '#8ac050', joint: '#121e08', eye: '#ff3060', glow: '#ffd0e0', accent: '#c0ff40' },
+    xe: { body: '#a8c870', dark: '#5a7a30', light: '#e0f0b0', joint: '#2a3a10', eye: '#ff3060', glow: '#ffffff', accent: '#80ff40' },
     mini: { body: '#8a9098', dark: '#50565e', light: '#c0c8d0', joint: '#202428', eye: '#ffb020', glow: '#ffffff', accent: '#ff9a30' },
   },
 
@@ -816,6 +818,30 @@ const Art = {
         r(6, 22, 1, 3, P.light); r(9, 22, 1, 3, P.light); r(22, 22, 1, 3, P.light); r(25, 22, 1, 3, P.light);
       }
     },
+    // XQ (48x48): huge, crowned, a spotted sac behind, six thin legs, scythe arms
+    xq(r, f, P) {
+      const atk = f === 'attack', s = f === 'walk1' ? 1 : 0;
+      r(12, 26, 24, 14, P.dark); r(14, 27, 20, 11, P.body);
+      for (let i = 0; i < 4; i++) r(16 + i * 5, 30 + (i % 2) * 3, 3, 2, P.accent);
+      for (const [x, dir] of [[10, -1], [14, -1], [18, -1], [30, 1], [34, 1], [38, 1]]) { r(x, 38 + ((x + s) % 2), 2, 8, P.joint); r(x + dir, 45, 3, 2, P.dark); }
+      r(14, 14, 20, 14, P.body); r(14, 14, 20, 2, P.light); r(18, 18, 12, 6, P.dark); r(22, 20, 4, 2, P.accent);
+      r(17, 4, 14, 11, P.body); r(17, 4, 14, 1, P.light);
+      for (let i = 0; i < 5; i++) r(17 + i * 3, i % 2, 2, 4, P.accent);
+      r(19, 7, 3, 2, P.eye); r(26, 7, 3, 2, P.eye); r(23, 9, 2, 2, P.eye); r(20, 7, 1, 1, P.glow); r(27, 7, 1, 1, P.glow);
+      r(19, 13, 3, atk ? 5 : 3, P.joint); r(26, 13, 3, atk ? 5 : 3, P.joint);
+      if (atk) { r(22, 13, 4, 3, P.accent); r(6, 4, 4, 12, P.light); r(38, 4, 4, 12, P.light); r(5, 3, 2, 3, P.dark); r(41, 3, 2, 3, P.dark); }
+      else { r(8, 16, 3, 12, P.light); r(37, 16, 3, 12, P.light); r(7, 27, 2, 3, P.dark); r(39, 27, 2, 3, P.dark); }
+    },
+    // XE: a pale spotted egg in a puddle of slime; pulses before it hatches
+    xe(r, f, P) {
+      const big = f === 'walk1' ? 1 : 0;
+      r(8, 28, 16, 2, P.accent);
+      r(12, 12 - big, 8, 2, P.body); r(11, 14 - big, 10, 2, P.body); r(10, 16 - big, 12, 10 + big, P.body); r(11, 26, 10, 2, P.dark);
+      r(12, 13 - big, 3, 1, P.light); r(11, 15 - big, 2, 4, P.light);
+      r(14, 18, 2, 2, P.dark); r(18, 21, 2, 2, P.dark); r(13, 23, 2, 1, P.dark);
+      r(16, 16, 1, 1, f === 'attack' ? P.eye : P.accent);
+    },
+
     // XB: tall, green, one big pink eye, a glowing gun arm
     xb(r, f, P) {
       const atk = f === 'attack';
@@ -851,7 +877,7 @@ const Art = {
     },
   },
 
-  spriteSizes: { boss: 48 },
+  spriteSizes: { boss: 48, xq: 48 },
 
   // Every robot in three looks, one per map theme: normal (foundry), frosted (cryo), scorched (lava).
   // Level.build picks the set for its map with useRobotTheme.
@@ -1017,6 +1043,10 @@ const Art = {
         r(0, 2, 1, 12, '#20242a'); r(17, 2, 1, 12, '#20242a'); r(3, 0, 12, 2, '#2a3038');
       });
     });
+
+    // acid blob (2 frames) and the green puddle it leaves
+    S.acid = [0, 1].map(f => this.makeSprite(8, 8, (ctx, r) => { r(2, 1, 4, 6, '#60e020'); r(1, 2, 6, 4, '#60e020'); r(2 + f, 2, 2, 2, '#e0ffa0'); }));
+    S.puddle = this.makeSprite(30, 3, (ctx, r) => { r(4, 0, 22, 3, '#3a9a18'); r(1, 1, 28, 2, '#3a9a18'); r(8, 0, 6, 1, '#a0ff60'); r(18, 1, 5, 1, '#a0ff60'); });
 
     // a Sapper's mine: a flat disc with a red light (frame 1 = light on)
     S.mine = [0, 1].map(on => this.makeSprite(12, 6, (ctx, r) => {

@@ -43,6 +43,8 @@ class Robot {
     this.leapCooldown = 1.5 + Math.random();     // jumper
     this.leap = null;
     this.jumpZ = 0;
+    this.hatch = 4;                              // egg
+    this.eggTimer = 3;                           // lead
   }
 
   get alive() { return this.state === 'spawning' || this.state === 'active'; }
@@ -80,6 +82,7 @@ class Robot {
       this.timer -= dt;
       return;
     }
+    if (this.def.egg) { this.hatch -= dt; if (this.hatch <= 0) Drill.hatch(this, game); return; }
 
     const p = game.player;
     const dx = p.x - this.x, dy = p.y - this.y;
@@ -104,6 +107,7 @@ class Robot {
     }
 
     if (this.def.boss) this.updateBoss(dt, game);
+    if (this.def.lead) Drill.leadTick(this, dt, game);
     if (this.def.medic) { if (this.pain <= 0) this.updateMedic(dt, game, dist); return; }
     if (this.def.sapper) this.updateSapper(dt, game);
     if (this.def.jumper && this.updateJumper(dt, game, dx, dy, dist, sees)) return;
@@ -191,6 +195,7 @@ class Robot {
   strike(game, dist) {
     this.attackCooldown = this.cooldownBase * (0.8 + Math.random() * 0.4);
     const p = game.player;
+    if (this.def.lead) { Drill.spit(this, game); return; }
     if (this.def.boss) { this.bossStrike(game, dist); return; }
     if (this.def.explodes) {
       this.hp = 0;

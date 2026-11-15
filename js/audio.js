@@ -107,6 +107,14 @@ const Sound = {
         T(0.4, { type: 'sawtooth', freq: 220, freqEnd: 60, gain: 0.25 });
         N(0.6, { type: 'bandpass', freq: 600, freqEnd: 2000, gain: 0.25 }, 0.05);
         break;
+      case 'spit': // a wet gurgle and a splat
+        N(0.18, { type: 'bandpass', freq: 500, freqEnd: 1400, gain: 0.35 });
+        T(0.12, { type: 'sine', freq: 220, freqEnd: 90, gain: 0.15 });
+        break;
+      case 'hatch': // a crack and a squeal
+        N(0.06, { type: 'highpass', freq: 3000, gain: 0.3 });
+        T(0.2, { type: 'square', freq: 600, freqEnd: 1300, gain: 0.07 });
+        break;
       case 'mine_place': // a heavy clack and an arming chirp
         N(0.05, { type: 'lowpass', freq: 900, gain: 0.35 });
         T(0.07, { type: 'square', freq: 1500, freqEnd: 1900, gain: 0.05 });
