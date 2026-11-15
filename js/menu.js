@@ -49,7 +49,7 @@ const Menu = {
     });
 
     // avatar + gun skin (locked choices are skipped until their achievement is earned)
-    const labels = { suit: 'SUIT', visor: 'EYE', helmet: 'HELMET', accessory: 'GEAR', gunSkin: 'GUN SKIN' };
+    const labels = { suit: 'SUIT', skin: 'SKIN', hair: 'HAIR', eyes: 'EYE COLOR', visor: 'CYBER EYE', helmet: 'HELMET', accessory: 'GEAR', gunSkin: 'GUN SKIN' };
     for (const [k, sec] of Object.entries(COSMETIC_SECTIONS)) labels[k] = sec.label;
     this.sectionRows = {};
     for (const key of Object.keys(labels)) {

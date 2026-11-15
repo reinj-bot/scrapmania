@@ -1233,7 +1233,8 @@ const Art = {
     const dark = this.shadeHex(suit, 0.62);
     const light = this.shadeHex(suit, 1.35);
     const metal = '#8a9098', metalDark = '#4a4f58', metalLight = '#c4cad2', black = '#16181c';
-    const skin = '#d8a07a', skinDark = '#b07a58', hair = '#3a2a1c';
+    const pick = (k, fallback) => (AVATAR_OPTIONS[k][av[k] || 0] || {}).color || fallback;
+    const skin = pick('skin', '#d8a07a'), skinDark = this.shadeHex(skin, 0.8), hair = pick('hair', '#3a2a1c'), iris = pick('eyes', '#2a1a10');
     const r = (x, y, w, h, col) => { ctx.fillStyle = col; ctx.fillRect(ox + x, oy + y, w, h); };
     const helmet = av.helmet, acc = av.accessory;
 
@@ -1280,7 +1281,7 @@ const Art = {
       // hair on his left side and top
       r(12, 2, 5, 2, hair); r(16, 3, 1, 2, hair);
       // his left eye, brow, nose and mouth
-      r(13, 4, 3, 1, hair); r(13, 5, 2, 1, '#ffffff'); r(14, 5, 1, 1, '#2a1a10');
+      r(13, 4, 3, 1, hair); r(13, 5, 2, 1, '#ffffff'); r(14, 5, 1, 1, iris);
       r(12, 7, 1, 2, skinDark); r(10, 9, 5, 1, '#8a4a3a');
       // upper half of his right face is a metal plate with a glowing machine eye
       r(7, 2, 5, 6, metal); r(7, 2, 5, 1, metalLight); r(7, 3, 1, 4, metalLight);

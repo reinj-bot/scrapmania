@@ -208,6 +208,20 @@ const AVATAR_OPTIONS = {
     { name: 'NAVY', color: '#1e2e5a', rank: 'LIEUTENANT' },
     { name: 'CHROME', color: '#d0d8e0', rank: 'LEGEND' },
   ],
+  // the human half: skin, hair and the human eye (all free; the first of each is the original look)
+  skin: [
+    { name: 'TAN', color: '#d8a07a' }, { name: 'LIGHT', color: '#f2cfb0' }, { name: 'MEDIUM', color: '#c08a60' },
+    { name: 'BROWN', color: '#9a6440' }, { name: 'DARK', color: '#6a4028' }, { name: 'DEEP', color: '#4a2c1c' },
+  ],
+  hair: [
+    { name: 'BROWN', color: '#3a2a1c' }, { name: 'BLACK', color: '#141414' }, { name: 'BLOND', color: '#d8b050' },
+    { name: 'RED', color: '#a8401c' }, { name: 'WHITE', color: '#d8d8d8' }, { name: 'BLUE', color: '#2a5ad0' },
+    { name: 'GREEN', color: '#30a050' }, { name: 'PINK', color: '#e060b0' },
+  ],
+  eyes: [
+    { name: 'BROWN', color: '#2a1a10' }, { name: 'BLUE', color: '#2a70d0' }, { name: 'GREEN', color: '#2a9a40' },
+    { name: 'GRAY', color: '#707a84' }, { name: 'HAZEL', color: '#7a5a20' }, { name: 'VIOLET', color: '#8040c0' },
+  ],
   visor: [
     { name: 'CYAN', color: '#4de1ff' }, { name: 'RED', color: '#ff3b3b' },
     { name: 'GOLD', color: '#ffd23b' }, { name: 'GREEN', color: '#5bff6a' },
