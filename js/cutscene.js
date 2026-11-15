@@ -305,8 +305,8 @@ const CUTSCENES = {
   },
 
   s4: {
-    length: 32.5,
-    CUT: 1.4, REACH: 3, GRX: 4, RX: 4.4, BACK: 5.4, TALK: 7, LINE: 3,
+    length: 48.5,
+    CUT: 1.4, REACH: 3, GRX: 4, RX: 4.4, BACK: 5.4, TALK: 7, LINE: 5, P3: 6,
     SHOTS: ['warden', 'flash', 'flash', 'warden', 'face', 'wide', 'warden', 'wide'],
     start(game, d) {
       const b = game.boss, p = game.player;
@@ -393,11 +393,11 @@ const CUTSCENES = {
         Effects.burst(p.x + d.u.x * 0.1, p.y + d.u.y * 0.1, 0.7, { count: 16, colors: ['#ffffff', '#40e0ff'], speed: 1.2, up: 1, size: 0.02, life: 0.5 });
       }
       if (at(this.BACK)) Sound.play('boss_charge', 0.5);
-      const fb = this.TALK + this.LINE;
+      const fb = this.TALK + this.LINE, fk = this.LINE * 2 / this.P3;
       if (at(fb)) Sound.play('teleport', 0.4);
-      if (at(fb + 2)) Sound.play('zap', 0.5);
-      if (at(fb + 3)) { Sound.play('glass', 1); Sound.play('glass', 0.7); }
-      if (at(fb + 3.9)) Sound.play('dash', 0.6);
+      if (at(fb + 2 * fk)) Sound.play('zap', 0.5);
+      if (at(fb + 3 * fk)) { Sound.play('glass', 1); Sound.play('glass', 0.7); }
+      if (at(fb + 3.9 * fk)) Sound.play('dash', 0.6);
       for (let i = 0; i < d.lines.length; i++) if (at(this.TALK + i * this.LINE)) Sound.play('robot_alert', 0.35);
       const li = (t - this.TALK) / this.LINE;
       if (li >= 0 && li < d.lines.length && (li % 1) * this.LINE < d.lines[li | 0].length / 30 && Math.random() < dt * 12) {
@@ -495,7 +495,7 @@ const CUTSCENES = {
         return;
       }
       const fb = t - (this.TALK + this.LINE);
-      if (fb >= 0 && fb < this.LINE * 2) this.p3(ctx, d, fb, W, VH);
+      if (fb >= 0 && fb < this.LINE * 2) this.p3(ctx, d, fb * this.P3 / (this.LINE * 2), W, VH);
       C.bars(ctx, W, VH, 0.65);
       if (t > this.RX + 0.6 && t < this.TALK + 0.4) {
         const a = Math.min(1, this.TALK + 0.4 - t);
@@ -592,7 +592,7 @@ const CUTSCENES = {
         if (str) Font.draw(ctx, str, 8 + jitter, 22 + i * 8, col, 1, 'left', null);
       });
       C.fade(ctx, W, VH, '#ffffff', 1 - ft * 4);
-      C.fade(ctx, W, VH, '#ffffff', (ft - (this.LINE * 2 - 0.25)) * 4);
+      C.fade(ctx, W, VH, '#ffffff', (ft - (this.P3 - 0.25)) * 4);
     },
     end(game, d) {
       game.extraSprites = null;
