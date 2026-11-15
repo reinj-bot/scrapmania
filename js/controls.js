@@ -13,14 +13,14 @@ const ACTIONS = [
   { id: 'grenade', label: 'GRENADE', key: 'KeyG' },
   { id: 'dash', label: 'DASH', key: 'ShiftLeft' },
   { id: 'use', label: 'USE SWITCH', key: 'KeyE' },
-  { id: 'gun1', label: 'SHOTGUN', key: 'Digit1', extra: ['Numpad1'] },
-  { id: 'gun2', label: 'SNIPER', key: 'Digit2', extra: ['Numpad2'] },
-  { id: 'gun3', label: 'RIFLE', key: 'Digit3', extra: ['Numpad3'] },
-  { id: 'gun4', label: 'SMG', key: 'Digit4', extra: ['Numpad4'] },
-  { id: 'gun5', label: 'ROCKETS', key: 'Digit5', extra: ['Numpad5'] },
-  { id: 'gun6', label: 'PLASMA', key: 'Digit6', extra: ['Numpad6'] },
-  { id: 'gun7', label: 'FLAMER', key: 'Digit7', extra: ['Numpad7'] },
-  { id: 'gun8', label: 'TESLA', key: 'Digit8', extra: ['Numpad8'] },
+  { id: 'gun1', label: 'WEAPON SLOT 1', key: 'Digit1', extra: ['Numpad1'] },
+  { id: 'gun2', label: 'WEAPON SLOT 2', key: 'Digit2', extra: ['Numpad2'] },
+  { id: 'gun3', label: 'WEAPON SLOT 3', key: 'Digit3', extra: ['Numpad3'] },
+  { id: 'gun4', label: 'WEAPON SLOT 4', key: 'Digit4', extra: ['Numpad4'] },
+  { id: 'gun5', label: 'WEAPON SLOT 5', key: 'Digit5', extra: ['Numpad5'] },
+  { id: 'gun6', label: 'WEAPON SLOT 6', key: 'Digit6', extra: ['Numpad6'] },
+  { id: 'gun7', label: 'WEAPON SLOT 7', key: 'Digit7', extra: ['Numpad7'] },
+  { id: 'gun8', label: 'WEAPON SLOT 8', key: 'Digit8', extra: ['Numpad8'] },
 ];
 
 // Standard controller layout (Xbox names; PlayStation works the same way).

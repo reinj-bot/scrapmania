@@ -7,6 +7,8 @@ class WeaponSystem {
     this.game = game;
     this.ammo = WEAPONS.map(w => ({ mag: w.mag, reserve: w.startReserve }));
     this.owned = WEAPONS.map((w, i) => i < BASE_WEAPONS);      // the rest come from weapon crates
+    // the hotbar: the guns you have, in the order you got them (a new gun takes the first empty slot)
+    this.slots = WEAPONS.map((w, i) => i).filter(i => this.owned[i]);
     this.levels = WEAPONS.map(() => ({ dmg: 0, mag: 0, reload: 0 })); // upgrade chips
     this.shotgunOnly = game.mods.includes('shotgun');
     this.current = this.shotgunOnly ? 0 : game.settings.startWeapon; // chosen in the main menu
@@ -46,18 +48,16 @@ class WeaponSystem {
     const turn = -Input.mouseDX * 0.12 - Controls.pad.lookX * 7;
     this.lagX += (Math.max(-14, Math.min(14, turn)) - this.lagX) * Math.min(1, dt * 9);
 
-    // weapon keys 1-4, mouse wheel, controller bumpers (Y also goes to the next gun)
-    for (let i = 0; i < WEAPONS.length; i++) {
-      if (Controls.pressed('gun' + (i + 1))) this.select(i);
+    // number keys pick a hotbar slot (an empty slot does nothing); wheel / bumpers go round the hotbar
+    for (let n = 0; n < this.slots.length; n++) {
+      if (Controls.pressed('gun' + (n + 1))) this.select(this.slots[n]);
     }
-    // wheel / bumpers skip guns you haven't found yet
     let step = Input.wheel;
     if (Controls.padPressed(PAD.RB)) step = 1;
     if (Controls.padPressed(PAD.LB)) step = -1;
     if (step) {
-      let i = this.switching ? this.switchTo : this.current;
-      do { i = (i + Math.sign(step) + WEAPONS.length) % WEAPONS.length; } while (!this.owned[i]);
-      this.select(i);
+      const at = this.slots.indexOf(this.switching ? this.switchTo : this.current);
+      this.select(this.slots[(at + Math.sign(step) + this.slots.length) % this.slots.length]);
     }
 
     if (this.switchTimer > 0) {
@@ -99,7 +99,7 @@ class WeaponSystem {
 
   select(i) {
     if (this.shotgunOnly && i !== 0) { this.game.message('SHOTGUN ONLY!', '#ff6040'); return; }
-    if (!this.owned[i]) { this.game.message(WEAPONS[i].name + (WEAPONS[i].vault ? ': HIDDEN IN A SECRET VAULT' : ': FIND IT IN A WEAPON CRATE'), '#a0a8b0'); return; }
+    if (!this.owned[i]) return;
     if (i === this.current && !this.switching) return;
     if (this.switching && i === this.switchTo) return;
     this.reloadTimer = 0; // switching cancels a reload
@@ -167,10 +167,11 @@ class WeaponSystem {
     const w = WEAPONS[i], st = this.ammo[i];
     if (!this.owned[i]) {
       this.owned[i] = true;
+      this.slots.push(i); // the first empty hotbar slot
       st.mag = this.magSize(i);
       st.reserve = w.startReserve;
       if (!this.shotgunOnly) this.select(i);
-      this.game.message('NEW WEAPON: ' + w.name + ' (KEY ' + Controls.name('gun' + (i + 1)) + ')', '#40e0ff');
+      this.game.message('NEW WEAPON: ' + w.name + ' (KEY ' + Controls.name('gun' + this.slots.length) + ')', '#40e0ff');
       return true;
     }
     if (w.infinite || st.reserve >= w.maxReserve) return false;

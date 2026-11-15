@@ -290,14 +290,14 @@ const HUD = {
     const nx = Math.round(120 - nameW / 2);
     Font.draw(ctx, def.name, nx, y0 + 12, '#ffffff', 1, 'left');
     if (ups) Font.draw(ctx, ' +' + ups, nx + Font.width(def.name), y0 + 12, '#40ffb0', 1, 'left');
-    WEAPONS.forEach((w, i) => {
-      const x = 83 + i * 11, y = y0 + 20;
+    // the hotbar: only the guns you have, in the order you got them
+    ws.slots.forEach((i, n) => {
+      const x = 83 + n * 11, y = y0 + 20;
       const active = i === (ws.switching ? ws.switchTo : ws.current);
       const empty = ws.ammo[i].mag === 0 && ws.ammo[i].reserve === 0;
-      const owned = ws.owned[i];
-      ctx.fillStyle = active ? '#e0a030' : owned ? '#2a2e34' : '#15181c';
+      ctx.fillStyle = active ? '#e0a030' : '#2a2e34';
       ctx.fillRect(x, y, 9, 8);
-      Font.draw(ctx, owned ? String(i + 1) : '-', x + 5, y + 2, active ? '#111' : !owned ? '#3a3f46' : empty ? '#803030' : '#a0a8b0', 1, 'center', null);
+      Font.draw(ctx, String(n + 1), x + 5, y + 2, active ? '#111' : empty ? '#803030' : '#a0a8b0', 1, 'center', null);
     });
 
     // portrait + name
