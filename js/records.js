@@ -10,6 +10,7 @@ const RANKS = [
 const ACHIEVEMENT_XP = 1000;
 
 // value(t) reads the combined totals (lifetime + the game being played). Done when value >= target.
+// secret: shown as ??? until earned. unseen: not listed at all (and not counted) until earned.
 const ACHIEVEMENTS = [
   { id: 'first', name: 'FIRST BLOOD', text: 'DESTROY YOUR FIRST ROBOT', target: 1, value: t => t.kills },
   { id: 'kills50', name: 'SCRAPPER', text: 'DESTROY 50 ROBOTS', target: 50, value: t => t.kills, reward: 'CAMO GUN SKIN' },
@@ -49,7 +50,7 @@ const ACHIEVEMENTS = [
   { id: 'miniboss', name: 'BIGGER THEY ARE', text: 'DESTROY A MINI-BOSS', target: 1, value: t => t.byType.miniboss || 0, reward: 'CARD: HAZARD' },
   { id: 'campaign', name: 'LIGHTS OUT, SECTOR 7', text: 'FINISH THE STORY CAMPAIGN', target: 1, value: t => t.flags.campaign ? 1 : 0, reward: 'CARD: GOLD' },
   { id: 'overseer', name: 'WRONG PLACE, WRONG TIME', text: 'MEET THE OVERSEER (1 IN 10000)', target: 1, value: t => t.flags.overseer ? 1 : 0, secret: true },
-  { id: 'x7', name: Lex.a1, text: Lex.a2, target: 1, value: t => t.flags.x7 ? 1 : 0, secret: true, reward: Lex.a3 },
+  { id: 'x7', name: Lex.a1, text: Lex.a2, target: 1, value: t => t.flags.x7 ? 1 : 0, secret: true, unseen: true, reward: Lex.a3 },
 ];
 
 const Records = {

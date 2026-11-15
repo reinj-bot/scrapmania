@@ -346,12 +346,13 @@ const Menu = {
 
   showRecords() {
     const t = Records.data.totals, s = this.game.settings, r = Records.rank();
-    const done = ACHIEVEMENTS.filter(a => Records.isUnlocked(a.id)).length;
+    const list = ACHIEVEMENTS.filter(a => !a.unseen || Records.isUnlocked(a.id));
+    const done = list.filter(a => Records.isUnlocked(a.id)).length;
     const nextGifts = r.next ? Cosmetics.rankRewards(r.next) : [];
     let html = (r.next ? `<div class="rec-totals best">NEXT RANK: ${r.next} AT ${r.nextXp} XP${nextGifts.length ? ' - UNLOCKS ' + nextGifts.join(', ') : ''}</div>` : '') +
       `<div class="rec-totals">RANK ${r.name} (${r.xp} XP) &middot; GAMES ${t.games} &middot; WARDENS DEFEATED ${t.bossKills} &middot; ROBOTS DESTROYED ${t.kills}</div>`;
-    html += `<h2>ACHIEVEMENTS ${done} / ${ACHIEVEMENTS.length}</h2><div class="goals">`;
-    for (const a of ACHIEVEMENTS) {
+    html += `<h2>ACHIEVEMENTS ${done} / ${list.length}</h2><div class="goals">`;
+    for (const a of list) {
       const got = Records.isUnlocked(a.id);
       const v = Math.min(a.target, a.value(t));
       const pct = got ? 100 : Math.floor(v / a.target * 100);
