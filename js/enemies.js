@@ -28,10 +28,9 @@ class Robot {
     this.phaseTimer = 0;
     this.teleportCooldown = 2 + Math.random() * 2;
     this.parent = null;        // mini-drone: the carrier that launched it
-    this.bossPhase = 1;        // boss: 1-3, gets meaner as it loses health
+    this.bossPhase = 1;        // boss: 1-3 (3 = worn out, below 33% health)
     this.summonTimer = 8;
     this.nextAttack = null;
-    this.extraVolley = 0;
     this.animTime = Math.random() * 10;
     this.knockX = 0;
     this.knockY = 0;
@@ -329,20 +328,18 @@ class Robot {
       this.bossPhase = phase;
       if (phase === 2) game.message('THE WARDEN IS ANGRY - IT CALLS FOR BOMBERS!', '#ff6040');
       if (phase === 3) {
-        game.message('THE WARDEN IS ENRAGED!', '#ff2020');
-        this.speed *= 1.4;
-        this.cooldownBase *= 0.6;
+        // worn out: slower, attacks less often and hits softer (robots also spawn less, see spawner.js)
+        game.message('THE WARDEN IS WEAKENING - IT HITS SOFTER NOW!', '#60ff80');
+        this.speed *= 0.8;
+        this.cooldownBase *= 1.6;
+        this.damage = Math.max(1, Math.round(this.damage * 0.6));
       }
       game.playAt('boss_roar', this.x, this.y, 1.2);
       game.shake(0.5);
     }
     if (this.bossPhase >= 2) {
       this.summonTimer -= dt;
-      if (this.summonTimer <= 0) { this.summonTimer = 12; this.summonBombers(game); }
-    }
-    if (this.extraVolley > 0) {
-      this.extraVolley -= dt;
-      if (this.extraVolley <= 0) this.fireVolley(game);
+      if (this.summonTimer <= 0) { this.summonTimer = this.bossPhase === 3 ? 20 : 12; this.summonBombers(game); }
     }
   }
 
@@ -358,16 +355,15 @@ class Robot {
       Effects.addLight(this.x, this.y, [1, 0.6, 0.3], 4, 1.2, 0.3);
       game.playAt('stomp', this.x, this.y, 1.3);
       game.shake(0.7);
-      if (dist < this.def.stompRange) game.player.hurt(Math.round(this.def.stompDamage * this.diff.damage), game);
+      if (dist < this.def.stompRange) game.player.hurt(Math.round(this.def.stompDamage * this.diff.damage * (this.bossPhase === 3 ? 0.6 : 1)), game);
       return;
     }
     this.fireVolley(game);
-    if (this.bossPhase === 3) this.extraVolley = 0.35; // enraged: fires twice
   }
 
   fireVolley(game) {
     const p = game.player;
-    const n = this.bossPhase === 3 ? 7 : 5;
+    const n = 5;
     const base = Math.atan2(p.y - this.y, p.x - this.x);
     for (let i = 0; i < n; i++) {
       const a = base + (i - (n - 1) / 2) * 0.17 + (Math.random() - 0.5) * this.aimError;

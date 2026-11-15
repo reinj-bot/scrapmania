@@ -157,7 +157,7 @@ const ROBOTS = {
     windup: 0.3, radius: 0.3, height: 0.9, score: 170, knockResist: 0.1, jumper: true,
   },
   // The boss. Arrives after CONFIG.BOSS_TIME; destroy it to win. Gets meaner as it loses health:
-  // phase 1 plasma volleys, phase 2 adds ground stomps and calls in Bombers, phase 3 is faster.
+  // phase 1 plasma volleys, phase 2 adds ground stomps and calls in Bombers, phase 3 (below 33%) is worn out: slower, softer and rarer attacks.
   boss: {
     name: 'WARDEN', hp: 1800, speed: 1.1, damage: 9, attackRange: 12, attackCooldown: 2.4,
     windup: 0.7, radius: 0.6, height: 1.9, score: 2500, knockResist: 1, noSpawn: true,

@@ -20,7 +20,7 @@ const Spawner = {
     // the longer you survive, the busier it gets (up to +60%)
     const ramp = (1 + Math.min(0.6, game.time / 400)) * MapEvents.spawnBoost(); // lockdowns bring robots faster
     // fewer reinforcements while the boss is fighting, none once it's down
-    const bossFight = game.mode === 'drill' ? 0 : game.boss ? (game.boss.alive ? 0.5 : 0) : 1; // (the bonus round spawns its own)
+    const bossFight = game.mode === 'drill' ? 0 : game.boss ? (game.boss.alive ? (game.boss.bossPhase === 3 ? 0.2 : 0.5) : 0) : 1; // far fewer once the Warden is worn out // (the bonus round spawns its own)
     this.timer -= dt * ramp * bossFight;
     if (this.timer <= 0) {
       this.timer = diff.spawnInterval * (0.7 + Math.random() * 0.6);

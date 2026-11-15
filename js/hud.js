@@ -114,7 +114,7 @@ const HUD = {
     const boss = game.boss;
     if (boss && boss.state !== 'wreck') {
       const bw = 160, bx = Math.round(cx - bw / 2), frac = Math.max(0, boss.hp / boss.maxHp);
-      const col = boss.bossPhase === 3 ? '#ff2020' : boss.bossPhase === 2 ? '#ff7030' : '#e0a030';
+      const col = boss.bossPhase === 3 ? '#b08060' : boss.bossPhase === 2 ? '#ff7030' : '#e0a030';
       Font.draw(ctx, 'THE WARDEN', cx, 4, col, 1, 'center');
       ctx.fillStyle = '#000'; ctx.fillRect(bx - 1, 11, bw + 2, 6);
       ctx.fillStyle = '#3a0c0c'; ctx.fillRect(bx, 12, bw, 4);
