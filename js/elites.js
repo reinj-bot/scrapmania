@@ -17,7 +17,8 @@ const Elites = {
   chance(game) { return Math.min(0.13, 0.03 + game.diff.level * 0.005); },
 
   make(r, traitCount = 1, mini = false) {
-    const ids = Object.keys(ELITE_TRAITS).sort(() => Math.random() - 0.5).slice(0, traitCount);
+    // a mini-boss never gets the regenerating power
+    const ids = Object.keys(ELITE_TRAITS).filter(id => !(mini && id === 'regen')).sort(() => Math.random() - 0.5).slice(0, traitCount);
     const c = ELITE_TRAITS[ids[0]].color;
     r.elite = { traits: ids, mini, outline: (0xff000000 | (c[2] << 16) | (c[1] << 8) | c[0]) >>> 0 };
     let hp = r.hp * (mini ? 5 : 1.8);

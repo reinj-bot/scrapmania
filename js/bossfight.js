@@ -49,10 +49,26 @@ const BossFight = {
     Effects.burst(s.x, s.y, 0.8, { count: 40, colors: ['#ff4020', '#ffffff', '#ff60f0'], speed: 2.5, up: 4, size: 0.05, life: 1 });
     Effects.addLight(s.x, s.y, [1, 0.3, 0.2], 7, 2, 1.5);
     Music.play('boss');
+    this.drain(game, b);
     Cutscene.play(game, CUTSCENES.warden);
     game.message(game.mode === 'endless' ? 'THE WARDEN HAS ARRIVED!' : 'THE WARDEN HAS ARRIVED! DESTROY IT TO WIN', '#ff4020');
     Sound.play('boss_roar', 1.2);
     game.shake(0.8);
+  },
+
+  // The Warden arrives: half of the robots (never the mini-boss) sink into the floor and stream
+  // their energy into it (Robot state 'drain', see enemies.js).
+  DRAIN_TIME: 3,
+  drain(game, boss) {
+    const list = game.robots.filter(r => r !== boss && r.alive && !(r.elite && r.elite.mini)).sort(() => Math.random() - 0.5);
+    const n = Math.floor(list.length / 2);
+    for (const r of list.slice(0, n)) {
+      r.state = 'drain'; r.timer = this.DRAIN_TIME + Math.random() * 0.6; r.drainTotal = r.timer;
+      r.windup = 0; r.leap = null; r.jumpZ = 0;
+    }
+    if (!n) return;
+    game.message('THE ROBOTS ARE FEEDING THEIR ENERGY TO THE WARDEN!', '#ff40a0');
+    game.say('COMMAND', 'WARNING: THE ROBOTS ARE SINKING INTO THE FLOOR AND GIVING THEIR ENERGY TO THE WARDEN!', '#ff40a0');
   },
 
   // Beating the Warden on a high difficulty: the level actually

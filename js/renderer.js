@@ -199,7 +199,7 @@ const Renderer = {
       const top = bottom - hPx;
       const left = screenX - wPx / 2;
       const x0 = Math.max(0, Math.ceil(left - 0.5)), x1 = Math.min(W, Math.ceil(left + wPx - 0.5));
-      const y0 = Math.max(0, Math.ceil(top - 0.5)), y1 = Math.min(VH, Math.ceil(bottom - 0.5));
+      const y0 = Math.max(0, Math.ceil(top - 0.5)), y1 = Math.min(VH, Math.ceil(bottom - 0.5), s.sink ? Math.ceil(horizon + eye * scale - 0.5) : VH); // sink: hidden below the floor
       const fade = s.fade === undefined ? 1 : s.fade;
       const flash = s.flash || 0;
       const outline = s.outline || 0;

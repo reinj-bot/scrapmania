@@ -59,6 +59,19 @@ class Robot {
       if (this.timer <= 0) this.state = 'active';
       return;
     }
+    if (this.state === 'drain') {
+      // sinking into the floor, its energy streaming to the Warden
+      this.timer -= dt;
+      const b = game.boss;
+      if (b && Math.random() < dt * 14) {
+        const k = Math.random(), h = this.def.height * 0.5 * (this.timer / this.drainTotal);
+        Effects.burst(this.x + (b.x - this.x) * k, this.y + (b.y - this.y) * k, h + (1.2 - h) * k + (Math.random() - 0.5) * 0.15,
+          { count: 1, colors: ['#ff40a0', '#ff80d0', '#ffffff'], speed: 0.15, up: 0.2, size: 0.03, life: 0.3, gravity: 0 });
+      }
+      if (Math.random() < dt * 8) Effects.burst(this.x, this.y, 0.05, { count: 2, colors: ['#ff40a0', '#ffffff'], speed: 0.6, up: 1.5, size: 0.025, life: 0.4, gravity: -0.5 });
+      if (this.timer <= 0) { this.state = 'wreck'; this.timer = 0; }
+      return;
+    }
     if (this.state === 'dying') {
       this.timer -= dt;
       if (this.timer <= 0) { this.state = 'wreck'; this.timer = 6; }
@@ -229,7 +242,7 @@ class Robot {
     const p = game.player, def = this.def;
     let target = null, worst = 1, nearest = null, nd = 99;
     for (const r of game.robots) {
-      if (r === this || !r.alive || r.def.boss || r.def.medic) continue;
+      if (r === this || !r.alive || r.def.boss || r.def.medic || (r.elite && r.elite.mini)) continue;
       const d = Math.hypot(r.x - this.x, r.y - this.y);
       if (d < nd) { nd = d; nearest = r; }
       const f = r.hp / r.maxHp;
@@ -257,7 +270,7 @@ class Robot {
     this.healTimer = def.healEvery;
     let healed = 0;
     for (const r of game.robots) {
-      if (r === this || !r.alive || r.def.boss || r.hp >= r.maxHp) continue;
+      if (r === this || !r.alive || r.def.boss || (r.elite && r.elite.mini) || r.hp >= r.maxHp) continue; // never the Warden or a mini-boss
       if (Math.hypot(r.x - this.x, r.y - this.y) > def.healRange) continue;
       r.hp = Math.min(r.maxHp, r.hp + r.maxHp * def.heal);
       this.healBeam(r);
@@ -478,6 +491,12 @@ class Robot {
     let img, fade = 1, flash = this.flash > 0 ? 0.75 : 0;
     let z = this.def.z ? this.def.z + Math.sin(this.animTime * 5) * 0.03 : 0;
     const speed = this.type === 'fast' || this.type === 'mini' || this.type === 'bomber' ? 9 : 5;
+    if (this.state === 'drain') {
+      // glowing pink and sinking into the floor (the renderer hides what is below the floor)
+      const k = 1 - this.timer / this.drainTotal;
+      const glow = ((this.animTime * 10) | 0) & 1 ? 0xffa040ff : 0xffd080ff;
+      return { x: this.x, y: this.y, z: -k * this.def.height, h: this.def.height, sprite: frames.walk0, mirror: this.mirror, outline: glow, sink: true };
+    }
     if (this.state === 'spawning') { img = frames.walk0; fade = 1 - this.timer / 0.7; }
     else if (this.state === 'dying') { img = this.timer > 0.22 ? frames.die0 : frames.die1; z = 0; }
     else if (this.state === 'wreck') { img = frames.wreck; fade = Math.min(1, this.timer / 1.5); z = 0; }
