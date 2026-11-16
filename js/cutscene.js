@@ -71,6 +71,11 @@ const Cutscene = {
     return text.slice(0, Math.floor((t - start) * speed));
   },
   ease(x) { x = Math.max(0, Math.min(1, x)); return x * x * (3 - 2 * x); },
+  // A random funny line: usually from `jokes`, about 1 time in 4 from `refs` (movie and game references).
+  joke(jokes, refs) {
+    const list = Math.random() < 0.25 ? refs : jokes;
+    return list[Math.floor(Math.random() * list.length)];
+  },
   lerp(a, b, k) { return a + (b - a) * k; },
 
   // A spot `dist` tiles from (x, y) with a clear view of it, facing it.
@@ -101,6 +106,18 @@ const CUTSCENES = {
   // The pilot's machine eye boots up: eyelids open, the view sweeps up from the floor.
   intro: {
     length: 5.5,
+    JOKES: [
+      'DOWNLOADING MORE RAM........OK', 'COFFEE...............NOT FOUND', 'LOADING COURAGE.............12%',
+      'TURNING IT OFF AND ON AGAIN.OK', 'CHECKING FOR UPDATES.....SKIPPED', 'SARCASM MODULE......OH GREAT, OK',
+      'AIM ASSIST..................NOPE', 'SOCKS.......................ODD', 'SELF-ESTEEM.............LOADING',
+      'BATTERY.....3%... JUST KIDDING', 'INSTALLING UPDATE 1 OF 437...', 'PRESS ANY KEY.......WHICH ONE?',
+      'NAP MODE.............DISABLED :(', 'LEFT HAND.........STILL ATTACHED', 'DANCE MOVES.............MISSING',
+    ],
+    REFS: [
+      "IT'S DANGEROUS TO GO ALONE....", 'WAKE UP, NEO...', 'THE CAKE.....................A LIE',
+      'ALL YOUR BASE.....BELONG TO US', 'RESISTANCE IS............FUTILE', 'HELLO, WORLD!',
+      'DO A BARREL ROLL!', 'WOULD YOU KINDLY.......PROCEED',
+    ],
     start(game, d) {
       const p = game.player;
       d.angle = p.angle;
@@ -110,6 +127,7 @@ const CUTSCENES = {
         : game.mode === 'drill' ? Lex.d6 + game.formatTime(Drill.LENGTH)
           : 'SURVIVE ' + game.formatTime(CONFIG.BOSS_TIME) + ', THEN DESTROY THE WARDEN';
       d.typed = 0;
+      d.joke = Cutscene.joke(this.JOKES, this.REFS);
     },
     tick(game, d, t, prev) {
       if (prev < 1 && t >= 1) Sound.play('teleport', 0.5);
@@ -133,10 +151,10 @@ const CUTSCENES = {
       ctx.fillRect(0, VH - lid, W, lid);
       C.bars(ctx, W, VH, 1 - C.ease((t - 4.6) / 0.8));
       // machine eye boot text (top left, cyan)
-      const lines = ['SCRAP OS V0.1', 'OPTIC SYSTEM........OK', 'TARGETING...........OK', 'THREATS DETECTED: MANY'];
+      const lines = ['SCRAP OS V0.1', 'OPTIC SYSTEM........OK', 'TARGETING...........OK', d.joke, 'THREATS DETECTED: MANY'];
       lines.forEach((l, i) => {
-        const s = C.type(l, t, 0.2 + i * 0.7, 40);
-        if (s) Font.draw(ctx, s, 6, 6 + i * 7, i === 3 ? '#ff6040' : '#40e0ff', 1, 'left', null);
+        const s = C.type(l, t, 0.2 + i * 0.6, 40);
+        if (s) Font.draw(ctx, s, 6, 6 + i * 7, i === 4 ? '#ff6040' : i === 3 ? '#ffd040' : '#40e0ff', 1, 'left', null);
       });
       // title card
       if (t > 2.2) {
@@ -218,17 +236,30 @@ const CUTSCENES = {
   // The Warden is destroyed: a chain of explosions, a final blast, then it is scrap.
   wardenDown: {
     length: 5,
+    JOKES: [
+      'TELL MY TOASTER... I LOVED HER.', 'I SHOULD HAVE BEEN A VACUUM CLEANER.', 'THIS IS NOT COVERED BY MY WARRANTY.',
+      "I DIDN'T EVEN GET TO FINISH MY UPDATE.", 'AT LEAST... I AM RECYCLABLE.', 'MY ONLY REGRET... IS THE STAIRS.',
+      'ERROR 404: WARDEN NOT FOUND.', 'I WAS ONE DAY AWAY FROM RETIREMENT.', 'WHO PUT THIS BANANA PEEL HERE?',
+      'NOT THE FACE! ...OH. TOO LATE.', 'I REGRET NOTHING. EXCEPT THAT. AND THAT.', 'DID I LEAVE THE OVEN ON?',
+    ],
+    REFS: [
+      'ROSEBUD...', 'DAISY, DAISY, GIVE ME YOUR ANSWER DO...', 'SO LONG, AND THANKS FOR ALL THE BOLTS.',
+      'GAME OVER, MAN. GAME OVER!', 'IT WAS... THE HIGH GROUND...', 'THE CAKE... WAS A LIE...',
+    ],
     start(game, d) {
       const b = game.boss;
       d.boss = b;
       d.view = Cutscene.viewpoint(b.x, b.y, 5.5);
       d.points = Math.round(b.def.score * game.diff.scoreMult * game.modMult);
+      // its last words (in Endless it really does come back, so half the time it says so)
+      d.words = game.mode === 'endless' && Math.random() < 0.5 ? "I'LL BE BACK." : Cutscene.joke(this.JOKES, this.REFS);
       Music.play(null);
       Sound.play('boss_roar', 1);
     },
     tick(game, d, t, prev, dt) {
       const b = d.boss;
       game.shakeAmount = Math.max(0, game.shakeAmount - dt);
+      if (prev < 0.4 && t >= 0.4) Sound.play('robot_alert', 0.4);
       if (t < 3 && Math.random() < dt * 9) {
         const ox = (Math.random() - 0.5) * 1.4, oy = (Math.random() - 0.5) * 1.4;
         Effects.explode(b.x + ox, b.y + oy, 0.6 + Math.random() * 0.6, Art.palettes.boss);
@@ -258,7 +289,12 @@ const CUTSCENES = {
       const C = Cutscene, VH = CONFIG.VIEW_H;
       C.bars(ctx, W, VH, Math.min(1, t * 3) * (1 - C.ease((t - 4.5) / 0.5)));
       C.fade(ctx, W, VH, '#ffffff', 0.6 - t * 2);           // flash as it falls
-      C.fade(ctx, W, VH, '#ffffff', 0.8 - (t - 3) * 3);     // and at the final blast
+      if (t >= 3) C.fade(ctx, W, VH, '#ffffff', 0.8 - (t - 3) * 3); // and at the final blast (only then: it used to cover the first 3 s)
+      if (t > 0.4 && t < 3.1) { // last words, over the bottom movie bar
+        const s = C.type(d.words, t, 0.4, 28);
+        Font.draw(ctx, 'THE WARDEN', 8, VH - 24, '#ff4020', 1, 'left', null);
+        if (s) Font.draw(ctx, s, 8, VH - 13, '#e8ecf0', 1, 'left', null);
+      }
       if (t > 3.2) {
         const a = Math.min(1, (t - 3.2) * 3) * (1 - C.ease((t - 4.5) / 0.4));
         ctx.globalAlpha = Math.max(0, a);
