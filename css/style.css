@@ -186,6 +186,9 @@ button.big:hover { background: #e0a030; color: #111; }
 #rank-box { text-align: center; font-size: 0.75em; }
 .rank-name { color: #e0a030; }
 .rank-xp { color: #6a7684; font-size: 0.85em; }
+.quick-stats { margin-top: 0.8cqh; padding-top: 0.6cqh; border-top: 0.1cqw solid #2a3440; font-size: 0.85em; }
+.stat-row { display: flex; justify-content: space-between; color: #6a7684; }
+.stat-row span:last-child { color: #c8d0d8; }
 .xp-bar { height: 0.6cqh; background: #0a0c10; border: 0.1cqw solid #3a4552; margin: 0.4cqh 0; }
 .xp-bar div, .goal-bar div { height: 100%; background: #40e0ff; }
 

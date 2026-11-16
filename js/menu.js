@@ -262,7 +262,15 @@ const Menu = {
     this.$('rank-box').innerHTML =
       `<div class="rank-name">${r.name}</div>` +
       `<div class="xp-bar"><div style="width:${Math.round(r.progress * 100)}%"></div></div>` +
-      `<div class="rank-xp">${r.next ? r.xp + ' / ' + r.nextXp + ' XP' : r.xp + ' XP - MAX RANK'}</div>`;
+      `<div class="rank-xp">${r.next ? r.xp + ' / ' + r.nextXp + ' XP' : r.xp + ' XP - MAX RANK'}</div>` +
+      this.quickStats();
+  },
+
+  // Small stats under the XP bar: best score, Wardens defeated, games played.
+  quickStats() {
+    const t = Records.data.totals;
+    const row = (name, value) => `<div class="stat-row"><span>${name}</span><span>${value}</span></div>`;
+    return `<div class="quick-stats">${row('BEST', t.bests.score || 0)}${row('WARDENS', t.bossKills || 0)}${row('GAMES', t.games || 0)}</div>`;
   },
 
   // Story screen: a title, a few paragraphs and one button.
