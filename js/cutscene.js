@@ -113,10 +113,12 @@ const CUTSCENES = {
       'BATTERY.....3%... JUST KIDDING', 'INSTALLING UPDATE 1 OF 437...', 'PRESS ANY KEY.......WHICH ONE?',
       'NAP MODE.............DISABLED :(', 'LEFT HAND.........STILL ATTACHED', 'DANCE MOVES.............MISSING',
     ],
-    REFS: [
-      "IT'S DANGEROUS TO GO ALONE....", 'WAKE UP, NEO...', 'THE CAKE.....................A LIE',
-      'ALL YOUR BASE.....BELONG TO US', 'RESISTANCE IS............FUTILE', 'HELLO, WORLD!',
-      'DO A BARREL ROLL!', 'WOULD YOU KINDLY.......PROCEED',
+    REFS: [ // Star Wars, FNAF, Minecraft, Cuphead, Among Us
+      'NOT THE DROIDS YOU ARE LOOKING FOR', 'THE FORCE...............STRONG', 'MAY THE FORCE..........BE WITH ME',
+      'NIGHT SHIFT........12 AM TO 6 AM', 'POWER LEFT..................99%', 'CAMERA 1A...........ALL CLEAR?',
+      'PUNCHING TREES..............OK', 'DIAMONDS...................0 :(', 'CREEPER NEARBY.......AWW MAN',
+      'DEAL WITH THE DEVIL.....DECLINED', 'WALLOP!',
+      'TASKS......................0 / 5', 'SCANNING CREW....1 IMPOSTOR LEFT', 'EMERGENCY MEETING..........NO',
     ],
     start(game, d) {
       const p = game.player;
@@ -174,6 +176,7 @@ const CUTSCENES = {
       const b = game.boss;
       d.view = Cutscene.viewpoint(b.x, b.y, 6);
       d.boss = b;
+      d.father = Math.random() < 0.1; // 1 in 10: a Star Wars line while it rises
       b.timer = 1.5;
       Sound.play('boss_alarm');
     },
@@ -191,6 +194,7 @@ const CUTSCENES = {
         if (Math.floor(prev * 1.6) !== Math.floor(t * 1.6)) Sound.play('stomp', 0.35);
       }
       if (prev < up && t >= up) { Sound.play('boss_roar', 1.2); Sound.play('stomp', 1); game.shake(0.8); }
+      if (d.father && prev < 1.2 && t >= 1.2) Sound.play('robot_alert', 0.6);
       game.shakeAmount = Math.max(0, game.shakeAmount - dt * 1.5);
       b.animTime += dt;
     },
@@ -222,6 +226,11 @@ const CUTSCENES = {
         Font.draw(ctx, 'GUARDIAN OF SECTOR 7', W / 2 + slide, VH - 24, '#c8d0d8', 1, 'center');
         ctx.globalAlpha = 1;
       }
+      if (d.father && t > 1.2 && t < up + 0.2) { // on the top movie bar
+        Font.draw(ctx, 'THE WARDEN', 8, 6, '#ff4020', 1, 'left', null);
+        const s = C.type('PILOT... I AM YOUR FATHER.', t, 1.3, 20);
+        if (s) Font.draw(ctx, s, 8, 16, '#e8ecf0', 1, 'left', null);
+      }
       C.fade(ctx, W, VH, '#000', 1 - (t - 0.6) * 4);       // quick fade in after the cut
       C.fade(ctx, W, VH, '#000', (t - this.length + 0.4) * 3); // and out at the end
     },
@@ -242,9 +251,12 @@ const CUTSCENES = {
       'ERROR 404: WARDEN NOT FOUND.', 'I WAS ONE DAY AWAY FROM RETIREMENT.', 'WHO PUT THIS BANANA PEEL HERE?',
       'NOT THE FACE! ...OH. TOO LATE.', 'I REGRET NOTHING. EXCEPT THAT. AND THAT.', 'DID I LEAVE THE OVEN ON?',
     ],
-    REFS: [
-      'ROSEBUD...', 'DAISY, DAISY, GIVE ME YOUR ANSWER DO...', 'SO LONG, AND THANKS FOR ALL THE BOLTS.',
-      'GAME OVER, MAN. GAME OVER!', 'IT WAS... THE HIGH GROUND...', 'THE CAKE... WAS A LIE...',
+    REFS: [ // Star Wars, FNAF, Minecraft, Cuphead, Among Us
+      'NOOOOOOOOOO!', 'I HAVE A BAD FEELING ABOUT THIS.', 'YOU HAD... THE HIGH GROUND...',
+      "IT'S ME.", '6 AM... ALREADY?',
+      'WAIT... WRONG WARDEN?', 'THE WARDEN WAS SLAIN BY PILOT', 'SSSSS... OOF.',
+      'A KNOCKOUT!', 'I SHOULD HAVE READ THE CONTRACT.',
+      'THE WARDEN WAS NOT THE IMPOSTOR.', 'BUT I WAS DOING MY TASKS!', 'RED IS SUS...',
     ],
     start(game, d) {
       const b = game.boss;
@@ -252,7 +264,8 @@ const CUTSCENES = {
       d.view = Cutscene.viewpoint(b.x, b.y, 5.5);
       d.points = Math.round(b.def.score * game.diff.scoreMult * game.modMult);
       // its last words (in Endless it really does come back, so half the time it says so)
-      d.words = game.mode === 'endless' && Math.random() < 0.5 ? "I'LL BE BACK." : Cutscene.joke(this.JOKES, this.REFS);
+      d.words = game.mode === 'endless' && Math.random() < 0.5 ? 'I ALWAYS COME BACK.' : Cutscene.joke(this.JOKES, this.REFS);
+      d.words = d.words.replace(' BY PILOT', ' BY ' + String(game.settings.username || 'PILOT').toUpperCase());
       Music.play(null);
       Sound.play('boss_roar', 1);
     },
@@ -449,7 +462,9 @@ const CUTSCENES = {
       if (at(fb)) Sound.play('teleport', 0.4);
       if (at(fb + 2 * fk)) Sound.play('zap', 0.5);
       if (at(fb + 3 * fk)) { Sound.play('glass', 1); Sound.play('glass', 0.7); }
-      if (at(fb + 3.9 * fk)) Sound.play('dash', 0.6);
+      if (at(fb + 3.7 * fk)) Sound.play('dash', 0.4);
+      if (at(fb + 4.3 * fk)) { Sound.play('stomp', 0.8); Sound.play('player_hurt', 0.4); }
+      if (at(fb + 5.3 * fk)) Sound.play('dash', 0.6);
       const h0 = this.TALK + this.P5 * this.LINE, L = this.LINE;
       if (at(h0)) Sound.play('teleport', 0.4);
       for (const [k, snd, v] of [[1.8, 'zap', 0.35], [2.4, 'robot_die', 0.35], [3.3, 'robot_die', 0.3], [L + 0.8, 'stomp', 0.4], [L + 1.4, 'stomp', 0.4],
@@ -598,18 +613,27 @@ const CUTSCENES = {
       const broke = ft >= 3, gw = 34, gx = cx - gw, gy = top + 10, gh = bot - top - 22;
       const s = 2.6, pw = 24 * s, ph = 32 * s;
       let px = cx - pw / 2, py = gy + 8 + Math.sin(ft * 2) * 2;
+      let fall = 0; // 0 standing, 1 flat on your face
       if (ft > 3.6) {
-        const k = Math.min(1, (ft - 3.6) / 2);
-        px += C.ease(k) * W * 0.75;
-        py = gy + 14 - (k > 0 && k < 1 ? Math.abs(Math.sin(ft * 14)) * 3 : 0);
+        px += (Math.min(ft, 4.1) - 3.6) * 60;                              // first steps...
+        if (ft > 4.1) { px += Math.min(ft - 4.1, 0.3) * 70; fall = C.ease((ft - 4.1) / 0.22); } // ...slip
+        if (ft > 5) fall = 1 - C.ease((ft - 5) / 0.3);                      // get up
+        if (ft > 5.3) px += (ft - 5.3) * W * 1.1;                           // and run
+        const running = ft < 4.1 || ft > 5.3;
+        py = gy + 14 - (running ? Math.abs(Math.sin(ft * 14)) * 3 : 0);
       } else if (broke) py = gy + 8 + (ft - 3) * 10;
       if (!broke) { ctx.fillStyle = 'rgba(40,190,130,0.35)'; ctx.fillRect(gx, gy, gw * 2, gh); }
       ctx.imageSmoothingEnabled = false;
-      ctx.drawImage(d.p0.canvas, Math.round(px), Math.round(py), pw, ph);
+      ctx.save();
+      ctx.translate(Math.round(px + pw / 2), Math.round(py + ph)); // turn around the feet
+      ctx.rotate(fall * Math.PI / 2);
+      ctx.drawImage(d.p0.canvas, -pw / 2, -ph, pw, ph);
       if (ft > 2) {
         ctx.fillStyle = `rgba(80,230,255,${0.5 + 0.4 * Math.abs(Math.sin(ft * 10))})`;
-        ctx.fillRect(Math.round(px + 9 * s), Math.round(py + 5 * s), Math.round(2 * s), Math.round(1.5 * s));
+        ctx.fillRect(Math.round(9 * s - pw / 2), Math.round(5 * s - ph), Math.round(2 * s), Math.round(1.5 * s));
       }
+      ctx.restore();
+      if (ft > 4.3 && ft < 5) Font.draw(ctx, 'SPLAT!', Math.round(px + pw / 2 + ph - 10), Math.round(py + ph - 26), '#ffffff', 2, 'center', '#000');
       if (!broke) {
         ctx.fillStyle = 'rgba(160,255,220,0.12)'; ctx.fillRect(gx, gy, gw * 2, gh);
         ctx.fillStyle = 'rgba(220,255,240,0.35)'; ctx.fillRect(gx + 6, gy + 4, 3, gh - 8);
