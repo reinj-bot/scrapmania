@@ -266,11 +266,17 @@ const Menu = {
       this.quickStats();
   },
 
-  // Small stats under the XP bar: best score, Wardens defeated, games played.
+  // Small stats under the XP bar: best score, Wardens defeated, games played, the highest difficulty
+  // beaten, and the fastest Mission win on (up to) your 5 highest difficulties.
   quickStats() {
-    const t = Records.data.totals;
+    const t = Records.data.totals, top = Records.highestWin();
     const row = (name, value) => `<div class="stat-row"><span>${name}</span><span>${value}</span></div>`;
-    return `<div class="quick-stats">${row('BEST', t.bests.score || 0)}${row('WARDENS', t.bossKills || 0)}${row('GAMES', t.games || 0)}</div>`;
+    let html = `<div class="quick-stats">${row('BEST', t.bests.score || 0)}${row('WARDENS', t.bossKills || 0)}${row('GAMES', t.games || 0)}` +
+      row('TOP DIFF', top || '-') + '</div>';
+    const times = Records.bestTimes(5);
+    html += '<div class="quick-stats"><div class="stat-title">BEST TIMES</div>' +
+      (times.length ? times.map(([lv, s]) => row('DIFF ' + lv, this.game.formatTime(s))).join('') : '<div class="stat-row">WIN A MISSION</div>') + '</div>';
+    return html;
   },
 
   // Story screen: a title, a few paragraphs and one button.

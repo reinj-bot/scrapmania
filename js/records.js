@@ -67,6 +67,7 @@ const Records = {
     if (d.totals && d.totals.bossKills === undefined) t.bossKills = t.wins || 0; // older saves
     this.data = {
       best: d.best && typeof d.best === 'object' ? d.best : {},
+      fastest: d.fastest && typeof d.fastest === 'object' ? d.fastest : {}, // Mission wins: difficulty -> fastest seconds
       totals: t,
       unlocked: Array.isArray(d.unlocked) ? d.unlocked : [],
     };
@@ -91,6 +92,20 @@ const Records = {
 
   key(map, level, mode) { return map + ':' + level + (mode === 'endless' ? ':endless' : mode === 'campaign' ? ':campaign' : mode === 'drill' ? ':drill' : ''); },
   best(map, level, mode) { return this.data.best[this.key(map, level, mode)] || null; },
+  // The highest difficulty you have won a Mission on (0 = none yet).
+  highestWin() {
+    let top = 0;
+    for (const [k, b] of Object.entries(this.data.best)) {
+      const m = /^[^:]+:(\d+)$/.exec(k);
+      if (m && b.won) top = Math.max(top, Number(m[1]));
+    }
+    for (const lv of Object.keys(this.data.fastest)) top = Math.max(top, Number(lv));
+    return top;
+  },
+  // Your fastest Mission win on each difficulty, highest difficulties first: [[level, seconds], ...].
+  bestTimes(count) {
+    return Object.entries(this.data.fastest).map(([lv, s]) => [Number(lv), s]).sort((a, b) => b[0] - a[0]).slice(0, count);
+  },
   // Choosing the difficulty unlocks once you have won a Mission on difficulty 10 or higher.
   difficultyUnlocked() {
     return Object.entries(this.data.best).some(([k, b]) => {
@@ -152,6 +167,10 @@ const Records = {
       won: old.won || run.won,
       wave: Math.max(old.wave || 0, run.wave || 0),
     };
+    if (run.won && !['endless', 'campaign', 'drill'].includes(run.mode)) {
+      const f = this.data.fastest, secs = Math.floor(run.time);
+      if (!f[run.level] || secs < f[run.level]) f[run.level] = secs;
+    }
     this.save();
     const rankAfter = this.rank().name;
     return { newBest, unlocked: run.unlockedNow, xpGained, rankUp: rankAfter !== rankBefore ? rankAfter : null };
