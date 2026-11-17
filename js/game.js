@@ -603,6 +603,7 @@ const Game = {
 
   onRobotKilled(robot) {
     if (this.state !== 'playing') return;
+    BossFight.killed(this, robot); // the Warden comes sooner
     Cosmetics.killEffect(this, robot);
     this.hitStop = robot.def.boss ? 0.3 : 0.035;
     this.kills++;

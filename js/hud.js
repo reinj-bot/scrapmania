@@ -166,7 +166,10 @@ const HUD = {
     } else {
       const left = Math.max(0, BossFight.nextAt - game.time);
       const urgent = left <= 30 && ((game.time * 4) | 0) % 2;
-      Font.draw(ctx, 'WARDEN IN ' + game.formatTime(Math.ceil(left)), 4, ty, urgent ? '#ff6040' : '#c8d0d8', 1, 'left');
+      const txt = 'WARDEN IN ' + game.formatTime(Math.ceil(left));
+      Font.draw(ctx, txt, 4, ty, urgent ? '#ff6040' : '#c8d0d8', 1, 'left');
+      const cut = BossFight.cut;
+      if (cut && game.time - cut.at < 1.2) Font.draw(ctx, '-' + cut.s.toFixed(1) + 'S', 8 + txt.length * 4, ty, '#60ff80', 1, 'left');
     }
 
     this.combo(ctx, W, VH);

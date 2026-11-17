@@ -6,6 +6,7 @@
 const BossFight = {
   reset(game) {
     this.nextAt = CONFIG.BOSS_TIME;
+    this.cut = null; // the last time cut, for the HUD
     this.warned = {};
     this.downTimer = 0;
     game.boss = null;
@@ -56,12 +57,24 @@ const BossFight = {
     game.shake(0.8);
   },
 
-  // The Warden arrives: half of the robots (never the mini-boss) sink into the floor and stream
+  // Every robot you destroy brings the Warden sooner: 1 second per 100 health (an elite counts its
+  // extra health), a mini-boss always 5 seconds. Only while you wait for the Warden.
+  SECONDS_PER_HP: 0.01, MINI_SECONDS: 5,
+  killed(game, r) {
+    if (game.boss || game.mode === 'drill' || !isFinite(this.nextAt) || r.def.boss) return;
+    const s = r.elite && r.elite.mini ? this.MINI_SECONDS : r.def.hp * (r.elite ? 1.8 : 1) * this.SECONDS_PER_HP;
+    this.nextAt = Math.max(game.time, this.nextAt - s);
+    if (isFinite(game.miniAt)) game.miniAt -= s; // the mini-boss still comes halfway
+    // kills close together add up on the HUD
+    this.cut = this.cut && game.time - this.cut.at < 1.2 ? { s: this.cut.s + s, at: game.time } : { s, at: game.time };
+  },
+
+  // The Warden arrives: 3 in 4 of the robots (never the mini-boss) sink into the floor and stream
   // their energy into it (Robot state 'drain', see enemies.js).
   DRAIN_TIME: 3,
   drain(game, boss) {
     const list = game.robots.filter(r => r !== boss && r.alive && !(r.elite && r.elite.mini)).sort(() => Math.random() - 0.5);
-    const n = Math.floor(list.length / 2);
+    const n = Math.round(list.length * 0.75);
     for (const r of list.slice(0, n)) {
       r.state = 'drain'; r.timer = this.DRAIN_TIME + Math.random() * 0.6; r.drainTotal = r.timer;
       r.windup = 0; r.leap = null; r.jumpZ = 0;
