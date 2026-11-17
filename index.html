@@ -304,10 +304,8 @@
 // Web app version (installed from Edge or Brave): keep a copy of the game so it starts offline.
 // Not used by the desktop program or when the page is opened as a file.
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || ['localhost', '127.0.0.1'].includes(location.hostname))) {
-  // an update took over while the game was open: reload once so the new version runs right away
-  const hadOne = !!navigator.serviceWorker.controller;
-  let reloaded = false;
-  navigator.serviceWorker.addEventListener('controllerchange', () => { if (hadOne && !reloaded) { reloaded = true; location.reload(); } });
+  // No reload when a new sw.js takes over: sw.js always fetches the newest files first, so the
+  // open page is already the new version (the old reload restarted the game ~5 s after opening).
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(() => {});
 }
 </script>
