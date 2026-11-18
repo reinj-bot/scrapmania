@@ -208,6 +208,7 @@ const Campaign = {
     BossFight.difficultyFlags(game);
     game.robots = game.robots.filter(r => r === b);
     Effects.projectiles = []; // no bolts left flying at you
+    WardenMoves.reset(); b.charge = null; b.sweep = null; // nor missiles on the way
     Cutscene.play(game, CUTSCENES.s4, () => game.win());
   },
 

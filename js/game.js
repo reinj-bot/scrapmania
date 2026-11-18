@@ -113,6 +113,7 @@ const Game = {
     Effects.reset();
     PlayerShots.reset();
     Mines.reset();
+    WardenMoves.reset();
     Level.flowFrom = -1;
     Art.buildWeapons(this.settings.avatar);
     HUD.setAvatar(this.settings.avatar);
@@ -438,6 +439,7 @@ const Game = {
     Effects.update(dt, this);
     PlayerShots.update(dt, this);
     Mines.update(dt, this);
+    WardenMoves.update(dt, this);
     Spawner.update(dt, this);
   },
 
@@ -486,6 +488,7 @@ const Game = {
     Effects.addSprites(sprites);
     PlayerShots.addSprites(sprites);
     Mines.addSprites(sprites, time);
+    WardenMoves.addSprites(sprites);
     if (this.extraSprites) sprites.push(...this.extraSprites);
     Teleporters.addSprites(sprites, time);
     MapEvents.addSprites(sprites);

@@ -106,7 +106,11 @@ class Robot {
       if (Math.abs(this.knockX) + Math.abs(this.knockY) < 0.05) this.knockX = this.knockY = 0;
     }
 
-    if (this.def.boss) this.updateBoss(dt, game);
+    if (this.def.boss) {
+      this.updateBoss(dt, game);
+      if (this.charge) { WardenMoves.chargeTick(this, dt, game); return; } // running at you, or dizzy
+      if (this.sweep) { WardenMoves.sweepTick(this, dt, game); return; }   // turning while it fires
+    }
     if (this.def.lead) Drill.leadTick(this, dt, game);
     if (this.def.medic) { if (this.pain <= 0) this.updateMedic(dt, game, dist); return; }
     if (this.def.sapper) this.updateSapper(dt, game);
@@ -128,7 +132,10 @@ class Robot {
     const inRange = dist <= this.def.attackRange;
     if (this.alerted && sees && inRange && this.attackCooldown <= 0 && this.canAttack()) {
       this.windup = this.def.windup;
-      if (this.def.boss) this.nextAttack = this.bossPhase >= 2 && dist < this.def.stompRange ? 'stomp' : 'volley';
+      if (this.def.boss) {
+        this.nextAttack = WardenMoves.pick(this, dist);
+        if (this.nextAttack === 'charge') this.windup = WardenMoves.CHARGE_WINDUP; // a longer warning
+      }
       const sound = this.def.boss ? 'boss_charge' : this.def.ranged ? 'plasma' : this.def.explodes ? 'bomber_arm' : 'robot_windup';
       game.playAt(sound, this.x, this.y, this.def.ranged ? 0.25 : 0.7);
       return;
@@ -363,18 +370,9 @@ class Robot {
       if (dist < this.def.stompRange) game.player.hurt(Math.round(this.def.stompDamage * this.diff.damage * (this.bossPhase === 3 ? 0.6 : 1)), game);
       return;
     }
-    this.fireVolley(game);
-  }
-
-  fireVolley(game) {
-    const p = game.player;
-    const n = 5;
-    const base = Math.atan2(p.y - this.y, p.x - this.x);
-    for (let i = 0; i < n; i++) {
-      const a = base + (i - (n - 1) / 2) * 0.17 + (Math.random() - 0.5) * this.aimError;
-      Effects.shootPlasma(this.x + Math.cos(a) * 0.7, this.y + Math.sin(a) * 0.7, a, this.def.projectileSpeed, this.damage);
-    }
-    game.playAt('plasma', this.x, this.y, 1.2);
+    if (this.nextAttack === 'missiles') { WardenMoves.missileRain(this, game); return; }
+    if (this.nextAttack === 'charge') { WardenMoves.startCharge(this, game); return; }
+    WardenMoves.startSweep(this, game);
   }
 
   summonBombers(game) {
@@ -445,6 +443,7 @@ class Robot {
     if (this.def.boss && source === 'bomber') return; // its own Bombers don't hurt it
     if (source) this.lastHit = source;
     if (this.state === 'spawning') this.state = 'active';
+    if (this.charge && this.charge.stun) amount *= WardenMoves.STUN_DAMAGE; // the dizzy Warden takes extra damage
     if (this.def.shield && !explosive && this.windup <= 0 && this.shieldDown <= 0) {
       amount *= this.def.shield;
       game.playAt('shield_ping', this.x, this.y, 0.6, 0.06);
@@ -518,7 +517,15 @@ class Robot {
       if (this.phase === 'in') fade *= 1 - this.phaseTimer / 0.35;
     }
     if (this.def.explodes && this.windup > 0 && ((this.animTime * 12) | 0) % 2) flash = 0.7; // about to blow
-    const outline = this.elite && this.state !== 'wreck' ? this.elite.outline : 0;
+    let outline = this.elite && this.state !== 'wreck' ? this.elite.outline : 0;
+    if (this.def.boss && this.alive) {
+      // the Warden about to charge (and while it runs) blinks red; dizzy after a crash it wobbles
+      if ((this.windup > 0 && this.nextAttack === 'charge') || (this.charge && !this.charge.stun)) {
+        if (((this.animTime * 10) | 0) & 1) outline = 0xff2020ff;
+        img = frames.attack;
+      }
+      if (this.charge && this.charge.stun) { img = frames.walk0; this.mirror = ((this.animTime * 3) | 0) & 1; }
+    }
     return { x: this.x, y: this.y, z, h: this.def.height, sprite: img, flash, fade, mirror: this.mirror, outline };
   }
 }

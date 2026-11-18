@@ -1046,6 +1046,16 @@ const Art = {
 
     // acid blob (2 frames) and the green puddle it leaves
     S.acid = [0, 1].map(f => this.makeSprite(8, 8, (ctx, r) => { r(2, 1, 4, 6, '#60e020'); r(1, 2, 6, 4, '#60e020'); r(2 + f, 2, 2, 2, '#e0ffa0'); }));
+    // Warden missile rain: the red target circle on the floor (2 blink frames) and the falling missile
+    S.target = ['#ff2020', '#ffb040'].map(col => this.makeSprite(32, 5, (ctx, r) => {
+      r(8, 0, 16, 1, col); r(3, 1, 6, 1, col); r(23, 1, 6, 1, col); r(1, 2, 3, 1, col); r(28, 2, 3, 1, col);
+      r(3, 3, 6, 1, col); r(23, 3, 6, 1, col); r(8, 4, 16, 1, col); r(14, 2, 4, 1, col);
+    }));
+    S.missile = this.makeSprite(6, 16, (ctx, r) => {
+      r(2, 0, 2, 3, '#ffd040'); r(1, 1, 4, 1, '#ff8020');            // flame on top (it falls nose first)
+      r(1, 3, 4, 9, '#8a929c'); r(1, 3, 1, 9, '#c4cad2'); r(0, 3, 6, 2, '#4a4f58'); // body and fins
+      r(2, 12, 2, 3, '#ff3020'); r(2, 15, 2, 1, '#ff8060');         // red nose
+    });
     S.puddle = this.makeSprite(30, 3, (ctx, r) => { r(4, 0, 22, 3, '#3a9a18'); r(1, 1, 28, 2, '#3a9a18'); r(8, 0, 6, 1, '#a0ff60'); r(18, 1, 5, 1, '#a0ff60'); });
 
     // a Sapper's mine: a flat disc with a red light (frame 1 = light on)
