@@ -207,6 +207,7 @@ const Campaign = {
     run.bossMaps[Level.mapId] = 1;
     BossFight.difficultyFlags(game);
     game.robots = game.robots.filter(r => r === b);
+    Effects.projectiles = []; // no bolts left flying at you
     Cutscene.play(game, CUTSCENES.s4, () => game.win());
   },
 

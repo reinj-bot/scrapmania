@@ -98,6 +98,7 @@ class Player {
 
   hurt(amount, game) {
     if (!this.alive || game.state !== 'playing') return;
+    if (Cutscene.active) return; // bolts still flying while a cutscene plays can't hurt you
     if (this.dashTime > 0) return; // dodged
     if (Campaign.aux) amount *= Campaign.SHIELD;
     this.hp -= amount;
