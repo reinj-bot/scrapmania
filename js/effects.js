@@ -97,8 +97,8 @@ const Effects = {
     this.lights.push({ x, y, c, radius, intensity, life, maxLife: life });
   },
 
-  shootPlasma(x, y, angle, speed, damage) {
-    this.projectiles.push({ x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, damage, life: 4, t: 0 });
+  shootPlasma(x, y, angle, speed, damage, owner = null) {
+    this.projectiles.push({ x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, damage, life: 4, t: 0, owner });
   },
 
   update(dt, game) {
@@ -137,7 +137,7 @@ const Effects = {
           game.playAt('impact', b.x, b.y, 0.6);
         } else if (pl.alive && Math.hypot(b.x - pl.x, b.y - pl.y) < 0.35) {
           b.life = 0;
-          pl.hurt(b.damage, game);
+          pl.hurt(b.damage, game, b.owner);
           this.burst(b.x, b.y, 0.5, { count: 8, colors: ['#ff50d0', '#ffffff'], speed: 2, up: 1.5, size: 0.03, life: 0.3 });
         }
       }

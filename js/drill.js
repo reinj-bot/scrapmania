@@ -200,7 +200,7 @@ const Drill = {
     const nx = -(p.y - q.y) / d, ny = (p.x - q.x) / d;
     for (const side of [-1, 0, 1]) {
       const tx = p.x + nx * side * 1.2 + (Math.random() - 0.5) * 0.6, ty = p.y + ny * side * 1.2 + (Math.random() - 0.5) * 0.6;
-      this.acids.push({ x0: q.x, y0: q.y, x1: tx, y1: ty, x: q.x, y: q.y, z: 1, t: 0, dur: 0.5 + Math.hypot(tx - q.x, ty - q.y) / 9, damage: q.damage });
+      this.acids.push({ x0: q.x, y0: q.y, x1: tx, y1: ty, x: q.x, y: q.y, z: 1, t: 0, dur: 0.5 + Math.hypot(tx - q.x, ty - q.y) / 9, damage: q.damage, owner: q });
     }
     game.playAt('spit', q.x, q.y, 1);
   },
@@ -219,7 +219,7 @@ const Drill = {
         this.puddles.push({ x: a.x, y: a.y, life: 5 });
         Effects.burst(a.x, a.y, 0.1, { count: 12, colors: ['#60e020', '#a0ff60'], speed: 1.6, up: 1.2, size: 0.035, life: 0.4 });
         game.playAt('impact', a.x, a.y, 0.6, 0.05);
-        if (Math.hypot(p.x - a.x, p.y - a.y) < 0.7) p.hurt(a.damage, game);
+        if (Math.hypot(p.x - a.x, p.y - a.y) < 0.7) p.hurt(a.damage, game, a.owner);
       }
     }
     this.acids = this.acids.filter(a => !a.done);
@@ -230,7 +230,7 @@ const Drill = {
     if (this.burn < 0.4) return;
     this.burn = 0;
     const inAcid = (x, y) => this.puddles.some(pu => Math.hypot(x - pu.x, y - pu.y) < 0.85);
-    if (inAcid(p.x, p.y)) p.hurt(Math.max(1, Math.round(5 * game.diff.damage)), game);
+    if (inAcid(p.x, p.y)) p.hurt(Math.max(1, Math.round(5 * game.diff.damage)), game, this.lead);
     for (const al of game.allies) if (inAcid(al.x, al.y)) al.hurt(8, game);
   },
 

@@ -96,7 +96,7 @@ class Player {
     }
   }
 
-  hurt(amount, game) {
+  hurt(amount, game, from = null) { // from: the robot that did it (for the death camera)
     if (!this.alive || game.state !== 'playing') return;
     if (Cutscene.active) return; // bolts still flying while a cutscene plays can't hurt you
     if (this.dashTime > 0) return; // dodged
@@ -110,6 +110,7 @@ class Player {
     if (this.hp <= 0) {
       this.hp = 0;
       this.alive = false;
+      this.killer = from && typeof from.x === 'number' ? from : null;
       game.gameOver();
     }
   }

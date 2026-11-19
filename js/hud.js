@@ -86,7 +86,7 @@ const HUD = {
     if (ws.scoped) {
       const sway = ws.swayOffset() * game.cameraProjDist();
       ctx.drawImage(this.scopeMask, Math.round(-60 + sway), 0);
-    } else {
+    } else if (game.player.alive) { // no crosshair once you're down (the death camera looks around)
       this.crosshair(ctx, cx, cy, ws.currentSpread() * game.cameraProjDist());
     }
 

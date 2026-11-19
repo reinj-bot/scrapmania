@@ -41,7 +41,7 @@ const Mines = {
   boom(m, game) {
     if (m.dead) return;
     m.dead = true;
-    Blast.at(m.x, m.y, game, { radius: 1.9, robotDamage: 60, playerDamage: m.damage, scale: 0.8, palette: Art.palettes.sapper, source: 'mine' });
+    Blast.at(m.x, m.y, game, { owner: m.owner, radius: 1.9, robotDamage: 60, playerDamage: m.damage, scale: 0.8, palette: Art.palettes.sapper, source: 'mine' });
   },
 
   // A bullet hit it: it goes off almost at once.

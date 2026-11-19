@@ -19,7 +19,7 @@ const Blast = {
       if (d >= R || !Level.hasLOS(x, y, r.x, r.y)) continue;
       r.hurt(20 + o.robotDamage * (1 - d / R), (r.x - x) / (d || 1), (r.y - y) / (d || 1), game, true, o.source);
     }
-    if (pd < R && Level.hasLOS(x, y, p.x, p.y)) p.hurt(Math.round(5 + o.playerDamage * (1 - pd / R)), game);
+    if (pd < R && Level.hasLOS(x, y, p.x, p.y)) p.hurt(Math.round(5 + o.playerDamage * (1 - pd / R)), game, o.owner);
     Breakables.blast(x, y, R, game);
     Mines.blast(x, y, R);
     CrackedWalls.blast(x, y, R, game);

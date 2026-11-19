@@ -215,14 +215,14 @@ class Robot {
     }
     if (this.def.ranged) {
       const a = Math.atan2(p.y - this.y, p.x - this.x) + (Math.random() * 2 - 1) * this.aimError;
-      Effects.shootPlasma(this.x + Math.cos(a) * 0.4, this.y + Math.sin(a) * 0.4, a, this.def.projectileSpeed, this.damage);
+      Effects.shootPlasma(this.x + Math.cos(a) * 0.4, this.y + Math.sin(a) * 0.4, a, this.def.projectileSpeed, this.damage, this);
       game.playAt('plasma', this.x, this.y, 0.8);
       return;
     }
     if (this.def.shield) this.shieldDown = 0.8; // stays open a moment after swinging
     game.playAt('robot_attack', this.x, this.y, 0.8);
     if (dist <= this.def.attackRange + 0.35 && Level.hasLOS(this.x, this.y, p.x, p.y)) {
-      p.hurt(this.damage, game);
+      p.hurt(this.damage, game, this);
       Effects.sparks(p.x + (this.x - p.x) * 0.4, p.y + (this.y - p.y) * 0.4, 0.5, 5);
     }
   }
@@ -318,7 +318,7 @@ class Robot {
         const p = game.player, pd = Math.hypot(p.x - this.x, p.y - this.y);
         Effects.burst(this.x, this.y, 0.05, { count: 14, colors: ['#8a8a8a', '#5a5a5a', '#ff40a0'], speed: 2.2, up: 1.2, size: 0.04, life: 0.45, bright: false });
         game.playAt('stomp', this.x, this.y, 0.6);
-        if (pd < 1.4 && p.alive) p.hurt(Math.round(this.damage * 1.3), game);
+        if (pd < 1.4 && p.alive) p.hurt(Math.round(this.damage * 1.3), game, this);
       }
       return true;
     }
@@ -367,7 +367,7 @@ class Robot {
       Effects.addLight(this.x, this.y, [1, 0.6, 0.3], 4, 1.2, 0.3);
       game.playAt('stomp', this.x, this.y, 1.3);
       game.shake(0.7);
-      if (dist < this.def.stompRange) game.player.hurt(Math.round(this.def.stompDamage * this.diff.damage * (this.bossPhase === 3 ? 0.6 : 1)), game);
+      if (dist < this.def.stompRange) game.player.hurt(Math.round(this.def.stompDamage * this.diff.damage * (this.bossPhase === 3 ? 0.6 : 1)), game, this);
       return;
     }
     if (this.nextAttack === 'missiles') { WardenMoves.missileRain(this, game); return; }
@@ -473,7 +473,7 @@ class Robot {
       // nothing left of a bomber: the blast is the whole show
       this.state = 'wreck';
       this.timer = 0;
-      Blast.at(this.x, this.y, game, {
+      Blast.at(this.x, this.y, game, { owner: this,
         radius: this.def.blastRadius, robotDamage: 120, playerDamage: this.damage, source: 'bomber',
         scale: 1.1, palette: Art.palettes[this.type],
       });

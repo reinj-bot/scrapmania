@@ -57,7 +57,7 @@ const Elites = {
       game.message('MINI-BOSS DOWN! IT DROPPED A WEAPON CRATE', '#60ff80');
     }
     if (r.elite.traits.includes('volatile')) {
-      Blast.at(r.x, r.y, game, { radius: 2.4, robotDamage: 120, playerDamage: 30, scale: 1.3, palette: Art.palettes[r.type], source: 'volatile' });
+      Blast.at(r.x, r.y, game, { owner: r, radius: 2.4, robotDamage: 120, playerDamage: 30, scale: 1.3, palette: Art.palettes[r.type], source: 'volatile' });
     }
   },
 

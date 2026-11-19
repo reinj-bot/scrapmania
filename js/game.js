@@ -265,6 +265,8 @@ const Game = {
     this.state = 'over';
     this.won = false;
     this.deathTimer = 1.8; // let the death moment play (in slow motion) before showing the screen
+    if (this.player.killer) this.deathTimer = 2.8; // ...longer when the camera turns to whoever got you
+    this.deathTotal = this.deathTimer;
     Sound.stopAmbient();
     Music.play(null);
     Sound.play('gameover');
@@ -380,7 +382,7 @@ const Game = {
       const slow = this.won ? dt : dt * 0.35;
       Effects.update(slow, this);
       for (const r of this.robots) r.update(slow, this);
-      if (!this.won) this.applyVideo(Math.min(1, (1.8 - this.deathTimer) / 1.2));
+      if (!this.won) this.applyVideo(Math.max(0, Math.min(1, ((this.deathTotal || 1.8) - this.deathTimer) / 1.2)));
       if (this.deathTimer <= 0) { Input.unlock(); Menu.showGameOver(this); }
     }
     if (this.state === 'menu') this.renderMenuBackground(dt, t / 1000);
@@ -445,6 +447,8 @@ const Game = {
 
   camera(time) {
     const p = this.player;
+    const kc = this.killCam();
+    if (kc) return kc;
     const scoped = this.weapons.scoped;
     const shake = this.shakeAmount;
     const bob = Math.sin(p.bobPhase) * 1.5 * p.moveAmount;
@@ -454,6 +458,22 @@ const Game = {
       angle: p.angle + (Math.random() - 0.5) * shake * 0.03,
       fov: scoped ? 2 * Math.atan(Math.tan(CONFIG.FOV / 2) / CONFIG.SNIPER_ZOOM) : CONFIG.FOV * (p.dashTime > 0 ? 1.08 : 1),
       horizonShift: bob + (Math.random() - 0.5) * shake * 8 - deathDrop,
+    };
+  },
+
+  // You died to a robot: the view turns to it and moves in for a closer look (if nothing is in the way).
+  killCam() {
+    const p = this.player, k = p && p.killer;
+    if (this.state !== 'over' || this.won || !k) return null;
+    const C = Cutscene, el = this.deathTotal - this.deathTimer;
+    const turn = C.ease((el - 0.1) / 0.7), move = C.ease((el - 0.6) / 1.4);
+    const dx = k.x - p.x, dy = k.y - p.y, d = Math.hypot(dx, dy) || 1;
+    let da = Math.atan2(dy, dx) - p.angle;
+    da = Math.atan2(Math.sin(da), Math.cos(da)); // the short way round
+    const go = Level.hasLOS(p.x, p.y, k.x, k.y) ? Math.max(0, d - 2.2) * 0.7 * move : 0;
+    return {
+      x: p.x + dx / d * go, y: p.y + dy / d * go, angle: p.angle + da * turn,
+      fov: CONFIG.FOV * (1 - 0.2 * move), horizonShift: -Math.min(1, el * 3) * 10,
     };
   },
 
@@ -472,6 +492,13 @@ const Game = {
     const [lr, lg, lb] = Level.lightAt(this.player.x, this.player.y);
     if (this.player.alive) this.weapons.draw(ctx, Math.max(lr, lg, lb) + (this.weapons.fireAnim > 0 ? 0.5 : 0));
     HUD.draw(ctx, this);
+    const k = this.killCam() && this.player.killer, el = this.deathTotal - this.deathTimer;
+    if (k && el > 0.7) {
+      const name = k.def.boss ? 'THE WARDEN' : k.elite ? Elites.name(k) : k.def.name;
+      ctx.globalAlpha = Math.min(1, (el - 0.7) * 3);
+      Font.draw(ctx, 'DESTROYED BY ' + name, CONFIG.WIDTH / 2, CONFIG.VIEW_H - 22, '#ff4030', 1, 'center', '#200000');
+      ctx.globalAlpha = 1;
+    }
   },
 
   // The 3D view only (no gun, no HUD), from any camera - cutscenes use this too.

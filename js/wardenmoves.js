@@ -38,7 +38,7 @@ const WardenMoves = {
     while (s.i < n && s.t >= s.i * this.SWEEP_GAP) {
       const k = (s.i - (n - 1) / 2) * b.sweepDir;
       const a = s.base + k * this.SWEEP_STEP + (Math.random() - 0.5) * b.aimError * 0.5;
-      Effects.shootPlasma(s.mx, s.my, a, b.def.projectileSpeed, b.damage);
+      Effects.shootPlasma(s.mx, s.my, a, b.def.projectileSpeed, b.damage, b);
       game.playAt('plasma', b.x, b.y, 0.8, 0.05);
       b.mirror = k > 0; // it turns as it fires
       s.i++;
@@ -56,7 +56,7 @@ const WardenMoves = {
       if (Level.isBlocked(x, y) || spots.some(s => Math.hypot(s.x - x, s.y - y) < 1.3)) continue;
       spots.push({ x, y });
     }
-    spots.forEach((s, i) => this.missiles.push({ x: s.x, y: s.y, t: -i * 0.12, damage, done: false }));
+    spots.forEach((s, i) => this.missiles.push({ x: s.x, y: s.y, t: -i * 0.12, damage, done: false, owner: b }));
     game.playAt('boss_charge', b.x, b.y, 1);
     Effects.burst(b.x, b.y, 1.9, { count: 18, colors: ['#ff6030', '#ffd080', '#ffffff'], speed: 1.5, up: 6, size: 0.04, life: 0.6 });
     game.message('INCOMING MISSILES - GET OUT OF THE RED CIRCLES!', '#ff6040');
@@ -67,7 +67,7 @@ const WardenMoves = {
       m.t += dt;
       if (m.t >= this.MISSILE_DELAY) {
         m.done = true;
-        Blast.at(m.x, m.y, game, { radius: this.MISSILE_RADIUS, robotDamage: 0, playerDamage: m.damage, scale: 0.8, palette: Art.palettes.boss, source: 'bomber' });
+        Blast.at(m.x, m.y, game, { owner: m.owner, radius: this.MISSILE_RADIUS, robotDamage: 0, playerDamage: m.damage, scale: 0.8, palette: Art.palettes.boss, source: 'bomber' });
       }
     }
     this.missiles = this.missiles.filter(m => !m.done);
@@ -93,7 +93,7 @@ const WardenMoves = {
     if (Math.random() < dt * 30) Effects.burst(b.x, b.y, 0.08, { count: 2, colors: ['#8a8070', '#ff6030'], speed: 1, up: 1, size: 0.04, life: 0.4 });
     if (!c.hit && p.alive && Math.hypot(p.x - b.x, p.y - b.y) < b.def.radius + 0.45) {
       c.hit = true;
-      p.hurt(c.damage, game);
+      p.hurt(c.damage, game, b);
       const side = (p.x - b.x) * -c.dy + (p.y - b.y) * c.dx >= 0 ? 1 : -1; // knocked out of its way, to the side
       Level.move(p, -c.dy * side * 1.1, c.dx * side * 1.1, 0.25);
       game.shake(0.8);
